@@ -74,11 +74,9 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 ## Project Structure
 
 automated-threat-hunting-platform/
-│
 ├── data/
-│   ├── logs/         # Sample log files
-│   └── cti/          # CTI feeds (MITRE ATT&CK, IOCs, etc.)
-│
+│   ├── logs/           # Sample log files
+│   └── cti/            # CTI feeds (MITRE ATT&CK, IOCs, etc.)
 ├── src/
 │   ├── log_parser.py         # Log ingestion and normalization
 │   ├── cti_integration.py    # CTI feed parsing
@@ -86,7 +84,6 @@ automated-threat-hunting-platform/
 │   ├── hunting_engine.py     # Automated hunting logic
 │   ├── reporting.py          # Reporting and output
 │   └── main.py               # Main entry point
-│
 ├── output/                   # Generated reports and findings
 ├── requirements.txt
 ├── README.md
