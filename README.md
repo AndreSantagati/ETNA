@@ -91,3 +91,17 @@ automated-threat-hunting-platform/
 ├── requirements.txt
 ├── README.md
 └── .gitignore
+
+---
+
+## Contributing
+
+Contributions are welcome!
+Please open an issue or submit a pull request for bug fixes, new features or improvements.
+
+---
+
+## Disclaimer
+
+This tool is for educational and research purpose only.
+Use responsibly and only on system you own or have explicit permission to analyze.
