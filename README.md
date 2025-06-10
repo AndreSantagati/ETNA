@@ -51,7 +51,7 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 
 
 3. **Install dependencies:**
-    Prepare your data:
+    **Prepare your data:**
     -    Place sample log files in the /data/logs/ directory.
     -    Place CTI feeds in the /data/cti/ directory.
 
@@ -59,11 +59,11 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 
 ## Usage
 
-1.  Run the main script:
+**1.  Run the main script:**
     ```bash
     python src/main.py
 
-2.  View results: 
+**2.  View results:** 
 -    Findings will be output to the console and/or saved as CSV/JSON in the /output/ directory.
 -    (Optional) Launch the dashboard: 
      ```bash
