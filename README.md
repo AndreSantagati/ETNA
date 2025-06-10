@@ -42,14 +42,9 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
    ```bash
    git clone https://github.com/yourusername/automated-threat-hunting-platform.git
    cd automated-threat-hunting-platform
-
-
 2. **Install dependencies:**
     ```bash
     pip install -r requirements.txt
-
-
-
 3. **Install dependencies:**
     **Prepare your data:**
     -    Place sample log files in the /data/logs/ directory.
@@ -62,13 +57,11 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 1.  Run the main script:
     ```bash
     python src/main.py
-
 2.  View results: 
 -    Findings will be output to the console and/or saved as CSV/JSON in the /output/ directory.
 -    (Optional) Launch the dashboard: 
      ```bash
      streamlit run src/dashboard.py
-
 ---
 
 ## Project Structure
