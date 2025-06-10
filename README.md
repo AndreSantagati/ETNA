@@ -57,7 +57,7 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 
 ---
 
-##Usage
+## Usage
 
 1.  Run the main script:
     ```bash
