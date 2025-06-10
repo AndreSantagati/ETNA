@@ -72,7 +72,6 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 ---
 
 ## Project Structure
-
 automated-threat-hunting-platform/
 ├── data/
 │   ├── logs/           # Sample log files
