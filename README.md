@@ -45,6 +45,7 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 
 
 2. **Install dependencies:**
+    ```bash
     pip install -r requirements.txt
 
 
