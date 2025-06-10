@@ -55,8 +55,9 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
     -    Place sample log files in the /data/logs/ directory.
     -    Place CTI feeds in the /data/cti/ directory.
 
+---
 
-#Usage
+##Usage
 
 1.  Run the main script:
     ```bash
