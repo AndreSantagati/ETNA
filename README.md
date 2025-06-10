@@ -1,5 +1,3 @@
-# automated-threat-hunting-platform
-
 # Automated Threat Hunting Platform
 
 ## Overview
