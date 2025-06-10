@@ -59,12 +59,35 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
 
 ## Usage
 
-**1.  Run the main script:**
+1.  Run the main script:
     ```bash
     python src/main.py
 
-**2.  View results:** 
+2.  View results: 
 -    Findings will be output to the console and/or saved as CSV/JSON in the /output/ directory.
 -    (Optional) Launch the dashboard: 
      ```bash
      streamlit run src/dashboard.py
+
+---
+
+## Project Structure
+
+automated-threat-hunting-platform/
+│
+├── data/
+│   ├── logs/         # Sample log files
+│   └── cti/          # CTI feeds (MITRE ATT&CK, IOCs, etc.)
+│
+├── src/
+│   ├── log_parser.py         # Log ingestion and normalization
+│   ├── cti_integration.py    # CTI feed parsing
+│   ├── ttp_mapping.py        # MITRE ATT&CK mapping logic
+│   ├── hunting_engine.py     # Automated hunting logic
+│   ├── reporting.py          # Reporting and output
+│   └── main.py               # Main entry point
+│
+├── output/                   # Generated reports and findings
+├── requirements.txt
+├── README.md
+└── .gitignore
