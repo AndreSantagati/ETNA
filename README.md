@@ -54,3 +54,16 @@ The **Automated Threat Hunting Platform** is an open-source tool designed to hel
     Prepare your data:
     -    Place sample log files in the /data/logs/ directory.
     -    Place CTI feeds in the /data/cti/ directory.
+
+
+#Usage
+
+1.  Run the main script:
+    ```bash
+    python src/main.py
+
+2.  View results: 
+-    Findings will be output to the console and/or saved as CSV/JSON in the /output/ directory.
+-    (Optional) Launch the dashboard: 
+     ```bash
+     streamlit run src/dashboard.py
