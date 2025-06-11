@@ -1,0 +1,6 @@
+﻿TimeCreated,UserName,ProcessName,EventID
+6/10/2024 10:15,alice,cmd.exe,4688
+6/10/2024 10:16,bob,powershell.exe,4104
+6/10/2024 10:17,carol,explorer.exe,4624
+6/10/2024 10:18,alice,wmic.exe,4688
+6/10/2024 10:19,bob,notepad.exe,4688
