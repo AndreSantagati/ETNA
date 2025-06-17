@@ -133,7 +133,7 @@ if __name__ == "__main__":
     cti_manager = CTIManager()
 
     print("\n--- Fetching and Parsing MITRE ATT&CK Data ---")
-    mitre_techniques_df = cti_manager.get_techniques_dataframe()
+    mitre_techniques_df = cti_manager.fetch_mitre_attack_data(force_download = True)
     print("\nFirst 5 MITRE ATT&CK Techniques:")
     print(mitre_techniques_df[['id', 'name', 'tactics']].head())
     print(f"\nExample lookup for T1003 (OS Credential Dumping):")
