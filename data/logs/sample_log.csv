@@ -1,6 +1,5 @@
-﻿TimeCreated,UserName,ProcessName,EventID
-6/10/2024 10:15,alice,cmd.exe,4688
-6/10/2024 10:16,bob,powershell.exe,4104
-6/10/2024 10:17,carol,explorer.exe,4624
-6/10/2024 10:18,alice,wmic.exe,4688
-6/10/2024 10:19,bob,notepad.exe,4688
+﻿TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData
+2024-06-17 10:00:00,HOST-01,user1,powershell.exe,4104,192.168.1.10,8.8.8.8,Process started
+2024-06-17 10:05:00,HOST-02,admin,cmd.exe,4688,10.0.0.5,192.168.1.1,Account logon
+2024-06-17 10:10:00,HOST-01,user1,calc.exe,4688,,,User opened calculator
+2024-06-17 10:15:00,HOST-03,guest,explorer.exe,4624,172.16.0.1,172.16.0.10,Successful logon
