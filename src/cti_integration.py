@@ -52,26 +52,32 @@ class CTIManager:
         techniques_list = []
         for obj in self.mitre_data.get('objects', []):
             if obj.get('type') == 'attack-technique':
-                tactics = [
-                    t.get('x_mitre_shortname')
-                    for t in obj.get('kill_chain_phases', [])
-                    if t.get('kill_chain_name') == 'mitre-attack'
-                ]
-                
-                # Extract external references to get the ATT&CK ID (e.g., T1003)
                 external_id = None
                 for ref in obj.get('external_references', []):
                     if ref.get('source_name') == 'mitre-attack':
                         external_id = ref.get('external_id')
                         break
+                
+                # Extract raw tactics names
+                raw_tactics_names = []
+                for phase in obj.get('kill_chain_phases', []):
+                    if phase.get('kill_chain_name') == 'mitre-attack':
+                        shortname = phase.get('x_mitre_shortname')
+                        if isinstance(shortname, str): # Ensure it's a string
+                            raw_tactics_names.append(shortname)
+                        # else: You could add logging here if you want to know about non-string shortnames
+                        #     print(f"Warning: Non-string shortname found for {external_id}: {shortname} (type: {type(shortname)})")
+
+                # Join the list of tactics into a single string.
+                # If raw_tactics_names is empty, ", ".join([]) results in an empty string ""
+                final_tactics_value = ", ".join(raw_tactics_names) 
 
                 techniques_list.append({
                     'id': external_id,
                     'name': obj.get('name'),
                     'description': obj.get('description'),
-                    'tactics': ", ".join(tactics) if tactics else None,
+                    'tactics': final_tactics_value, # This will always be a string (or empty string)
                     'url': f"https://attack.mitre.org/techniques/{external_id.replace('.', '/')}" if external_id else None,
-                    # You could add 'x_mitre_detection' or 'x_mitre_defense_bypasses' here
                 })
         
         self.techniques_df = pd.DataFrame(techniques_list)
