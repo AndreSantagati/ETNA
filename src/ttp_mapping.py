@@ -3,8 +3,8 @@
 import os
 import yaml
 from typing import List, Dict, Any, Optional
-from pysigma import SigmaCollection
-from pysigma.exceptions import SigmaCollectionError
+from sigma.collection import SigmaCollection
+from sigma.exceptions import SigmaCollectionError
 
 class SigmaRuleLoader:
     def __init__(self, rules_path: str = 'data/sigma_rules/'):
