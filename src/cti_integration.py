@@ -23,8 +23,13 @@ class CTIManager:
 
         if not force_download and os.path.exists(local_path):
             print(f"Loading MITRE ATT&CK data from local file: {local_path}")
-            with open(local_path, 'r', encoding='utf-8') as f:
-                self.mitre_data = json.load(f)
+            try:
+                with open(local_path, 'r', encoding='utf-8') as f:
+                    self.mitre_data = json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"ERROR: Local MITRE ATT&CK JSON file is corrupted or invalid: {e}")
+                print("Attempting to re-download.")
+                return self.fetch_mitre_attack_data(force_download=True) # Force download if local is bad
         else:
             print(f"Downloading MITRE ATT&CK data from {self.mitre_attack_enterprise_url}...")
             try:
@@ -44,44 +49,62 @@ class CTIManager:
         """
         Parses the loaded MITRE ATT&CK data to extract techniques,
         including their IDs, names, descriptions, tactics, and mitigations.
+        Includes extensive debugging.
         """
         if not self.mitre_data:
-            print("MITRE ATT&CK data not loaded. Call fetch_mitre_attack_data() first.")
-            return pd.DataFrame()
+            print("ERROR: MITRE ATT&CK data not loaded or is empty. Cannot parse techniques.")
+            return pd.DataFrame(columns=['id', 'name', 'tactics', 'description', 'url']) # Return empty with columns
 
         techniques_list = []
+        total_objects_count = len(self.mitre_data.get('objects', []))
+        print(f"DEBUG: Total objects found in MITRE data: {total_objects_count}")
+
+        parsed_technique_count = 0
+        object_types_found = {} # Keep track of object types found for debugging
+
         for obj in self.mitre_data.get('objects', []):
-            if obj.get('type') == 'attack-technique':
+            obj_type = obj.get('type')
+            object_types_found[obj_type] = object_types_found.get(obj_type, 0) + 1
+
+            if obj_type == 'attack-pattern': # CORRECTED: looking for 'attack-pattern'
+                parsed_technique_count += 1
+                
                 external_id = None
                 for ref in obj.get('external_references', []):
                     if ref.get('source_name') == 'mitre-attack':
-                        external_id = ref.get('external_id')
+                        external_id = str(ref.get('external_id', '')) # Ensure ID is string
                         break
                 
-                # Extract raw tactics names
+                technique_name = str(obj.get('name', 'Unknown Technique')) # Ensure name is string
+                description = str(obj.get('description', 'No description provided.')) # Ensure description is string
+                
                 raw_tactics_names = []
                 for phase in obj.get('kill_chain_phases', []):
                     if phase.get('kill_chain_name') == 'mitre-attack':
                         shortname = phase.get('x_mitre_shortname')
                         if isinstance(shortname, str): # Ensure it's a string
                             raw_tactics_names.append(shortname)
-                        # else: You could add logging here if you want to know about non-string shortnames
-                        #     print(f"Warning: Non-string shortname found for {external_id}: {shortname} (type: {type(shortname)})")
-
-                # Join the list of tactics into a single string.
-                # If raw_tactics_names is empty, ", ".join([]) results in an empty string ""
-                final_tactics_value = ", ".join(raw_tactics_names) 
+                
+                final_tactics_value = ", ".join(raw_tactics_names) # Will be empty string if no tactics
 
                 techniques_list.append({
                     'id': external_id,
-                    'name': obj.get('name'),
-                    'description': obj.get('description'),
-                    'tactics': final_tactics_value, # This will always be a string (or empty string)
-                    'url': f"https://attack.mitre.org/techniques/{external_id.replace('.', '/')}" if external_id else None,
+                    'name': technique_name,
+                    'description': description,
+                    'tactics': final_tactics_value,
+                    'url': f"https://attack.mitre.org/techniques/{external_id.replace('.', '/')}" if external_id and external_id.startswith('T') else None,
                 })
         
-        self.techniques_df = pd.DataFrame(techniques_list)
-        print(f"Parsed {len(self.techniques_df)} MITRE ATT&CK techniques.")
+        print(f"DEBUG: Found {parsed_technique_count} 'attack-pattern' objects during parsing.")
+        print(f"DEBUG: Types of objects found in MITRE data: {object_types_found}")
+
+        if not techniques_list:
+            print("WARNING: techniques_list is empty after parsing. This indicates no 'attack-pattern' objects were found or processed successfully.")
+            self.techniques_df = pd.DataFrame(columns=['id', 'name', 'tactics', 'description', 'url'])
+        else:
+            self.techniques_df = pd.DataFrame(techniques_list)
+        
+        print(f"Parsed {len(self.techniques_df)} MITRE ATT&CK techniques into DataFrame.")
         return self.techniques_df
 
     def get_techniques_dataframe(self) -> pd.DataFrame:
@@ -90,7 +113,7 @@ class CTIManager:
         Fetches and parses if not already loaded.
         """
         if self.techniques_df is None or self.techniques_df.empty:
-            self.fetch_mitre_attack_data()
+            self.fetch_mitre_attack_data() # This will now try to load local, or download if bad/missing
             self._parse_mitre_techniques()
         return self.techniques_df
 
@@ -101,8 +124,10 @@ class CTIManager:
         if self.techniques_df is None or self.techniques_df.empty:
             self.get_techniques_dataframe() # Ensure data is loaded
         
+        # Use .str.contains for partial matches, or .str.fullmatch for exact matches
         if self.techniques_df is not None:
-            result = self.techniques_df[self.techniques_df['id'].str.contains(technique_id, na=False, case=False)]
+            # Ensure the 'id' column is treated as string for .str.contains
+            result = self.techniques_df[self.techniques_df['id'].astype(str).str.contains(technique_id, na=False, case=False)]
             if not result.empty:
                 return result.iloc[0].to_dict()
         return None
@@ -139,9 +164,18 @@ if __name__ == "__main__":
     cti_manager = CTIManager()
 
     print("\n--- Fetching and Parsing MITRE ATT&CK Data ---")
-    mitre_techniques_df = cti_manager.fetch_mitre_attack_data(force_download = True)
-    print("\nFirst 5 MITRE ATT&CK Techniques:")
-    print(mitre_techniques_df[['id', 'name', 'tactics']].head())
+    # Using get_techniques_dataframe will handle the download/load and parsing
+    mitre_techniques_df = cti_manager.get_techniques_dataframe()
+    
+    if not mitre_techniques_df.empty:
+        print("\nFirst 5 MITRE ATT&CK Techniques:")
+        # Removed the explicit list indexing for print, just use .head() on the df
+        print(mitre_techniques_df[['id', 'name', 'tactics']].head()) 
+        print(f"Total techniques parsed: {len(mitre_techniques_df)}")
+    else:
+        print("\nNo MITRE ATT&CK techniques parsed. DataFrame is empty.")
+
+
     print(f"\nExample lookup for T1003 (OS Credential Dumping):")
     cred_dumping_tech = cti_manager.get_technique_by_id('T1003')
     if cred_dumping_tech:
@@ -150,7 +184,6 @@ if __name__ == "__main__":
         print("T1003 not found.")
 
     print("\n--- Fetching a Sample IOC Feed (Malware IPs) ---")
-    # Using a known open-source feed for testing. Be mindful of their usage policies.
     malware_ip_feed_url = "https://feodotracker.abuse.ch/downloads/ipblocklist.txt"
     malware_ips = cti_manager.fetch_ioc_feed(malware_ip_feed_url, "feodotracker_ips")
     if malware_ips:
