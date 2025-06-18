@@ -2,135 +2,193 @@
 
 import pandas as pd
 import os
+import re # We'll need regex for matching Sigma rule patterns
+
 from src.log_parser import LogParserFactory, NORMALIZED_LOG_SCHEMA
 from src.cti_integration import CTIManager
+from src.ttp_mapping import SigmaRuleLoader # Import our SigmaRuleLoader
 from typing import Dict, List, Any
 
 class ThreatHuntingEngine:
-    def __init__(self, cti_manager: CTIManager):
+    def __init__(self, cti_manager: CTIManager, sigma_rule_loader: SigmaRuleLoader):
         self.cti_manager = cti_manager
-        # Ensure CTI data is loaded and techniques DataFrame is available
+        self.sigma_rule_loader = sigma_rule_loader # Store the Sigma rule loader
+        
         self.mitre_techniques_df = self.cti_manager.get_techniques_dataframe()
+        self.sigma_rules = self.sigma_rule_loader.get_loaded_rules() # Load Sigma rules here
+
         if self.mitre_techniques_df.empty:
             print("WARNING: MITRE ATT&CK techniques DataFrame is empty. Hunting rules may not find matches.")
         else:
             print(f"Hunting Engine initialized with {len(self.mitre_techniques_df)} MITRE ATT&CK techniques.")
+        
+        if not self.sigma_rules:
+            print("WARNING: No Sigma rules loaded. Hunting engine will not perform rule-based detections.")
+        else:
+            print(f"Hunting Engine loaded {len(self.sigma_rules)} Sigma rules.")
+
+
+    def _evaluate_sigma_condition(self, log_entry: pd.Series, detection_logic: Dict[str, Any]) -> bool:
+        """
+        Evaluates a simplified Sigma detection logic against a single log entry.
+        NOTE: This is a highly simplified interpreter for demonstration.
+              A full PySigma backend would be more robust.
+        """
+        # Simplistic handling of 'selection' and 'condition' (AND/OR logic)
+        # Assumes 'condition: selection' or 'condition: selection1 and selection2' etc.
+        # This implementation will handle basic 'selection' dictionaries with string/list matching.
+
+        if 'selection' in detection_logic:
+            selection_dict = detection_logic['selection']
+            match_found = True # Assume AND logic between selection fields initially
+
+            for field, patterns in selection_dict.items():
+                if field not in log_entry.index or pd.isna(log_entry[field]):
+                    match_found = False # Field not present in log or is NaN/None
+                    break
+
+                log_value = str(log_entry[field]).lower() # Convert log value to string for matching
+
+                if isinstance(patterns, str): # Single string pattern
+                    # Check if the pattern is in the log value
+                    if patterns.startswith('*') and patterns.endswith('*'):
+                        # Wildcard match (e.g., *powershell*)
+                        if patterns[1:-1].lower() not in log_value:
+                            match_found = False
+                            break
+                    elif patterns.endswith('*'):
+                        # Starts with match (e.g., powershell*)
+                        if not log_value.startswith(patterns[:-1].lower()):
+                            match_found = False
+                            break
+                    elif patterns.startswith('*'):
+                        # Ends with match (e.g., *powershell)
+                        if not log_value.endswith(patterns[1:].lower()):
+                            match_found = False
+                            break
+                    else: # Exact match or contains
+                        if patterns.lower() not in log_value: # Simplified to 'contains' for non-exact
+                            match_found = False
+                            break
+                elif isinstance(patterns, list): # List of patterns (OR logic within list)
+                    list_match_found = False
+                    for pattern in patterns:
+                        if isinstance(pattern, str):
+                            if pattern.startswith('*') and pattern.endswith('*'):
+                                if pattern[1:-1].lower() in log_value:
+                                    list_match_found = True
+                                    break
+                            elif pattern.endswith('*'):
+                                if log_value.startswith(pattern[:-1].lower()):
+                                    list_match_found = True
+                                    break
+                            elif pattern.startswith('*'):
+                                if log_value.endswith(pattern[1:].lower()):
+                                    list_match_found = True
+                                    break
+                            else:
+                                if pattern.lower() in log_value: # Simplified to 'contains'
+                                    list_match_found = True
+                                    break
+                    if not list_match_found:
+                        match_found = False
+                        break
+                # Add more complex Sigma features like regex, not, all, etc. here if needed
+                # For this MVP, we're simplifying.
+            return match_found
+        
+        # If no explicit selection logic, consider it not matched for now
+        return False
 
     def _apply_hunting_rules(self, logs_df: pd.DataFrame) -> pd.DataFrame:
         """
-        Applies a set of simple hunting rules to the logs DataFrame
-        to identify potential ATT&CK techniques.
+        Applies loaded Sigma rules to the logs DataFrame.
         """
         hunting_findings = []
 
-        # Ensure process_name column is present and string type for reliable searching
-        if 'process_name' not in logs_df.columns:
-            logs_df['process_name'] = "" # Add empty column if missing for consistency
-        logs_df['process_name'] = logs_df['process_name'].astype(str)
+        # Ensure all columns needed by Sigma rules are strings or handled
+        for col in ['process_name', 'event_id', 'message', 'source_ip', 'destination_ip', 'hostname', 'username']:
+            if col not in logs_df.columns:
+                logs_df[col] = None # Add missing columns
+            logs_df[col] = logs_df[col].astype(str).fillna('') # Convert to string, fill NaN with empty string
 
-        # Ensure event_id column is present and string type for reliable searching
-        if 'event_id' not in logs_df.columns:
-            logs_df['event_id'] = None # Add empty column if missing for consistency
-        logs_df['event_id'] = logs_df['event_id'].astype(str) # Convert to string for consistent searching
+        if not self.sigma_rules:
+            print("No Sigma rules available to apply.")
+            return pd.DataFrame()
 
-        # --- Rule for T1059.001 - Command and Scripting Interpreter: PowerShell ---
-        # Description: Adversaries may abuse PowerShell for execution.
-        powershell_tech = self.cti_manager.get_technique_by_id('T1059.001') 
-        if powershell_tech:
-            # Look for logs where 'process_name' contains 'powershell.exe' or 'pwsh.exe'
-            # Also looking for specific Event IDs if relevant (e.g., 4104 for script block logging)
-            susp_powershell_filter = (
-                logs_df['process_name'].str.contains('powershell|pwsh', case=False, na=False)
-            )
-            # You could add: & (logs_df['event_id'] == '4104') for specific event ID correlation
+        print(f"Applying {len(self.sigma_rules)} Sigma rules to logs...")
 
-            susp_powershell = logs_df[susp_powershell_filter]
-            for _, row in susp_powershell.iterrows():
-                finding = row.to_dict()
-                finding.update({
-                    'hunting_rule': 'Suspicious PowerShell Execution',
-                    'mitre_technique_id': powershell_tech['id'],
-                    'mitre_technique_name': powershell_tech['name'],
-                    'mitre_technique_url': powershell_tech['url'],
-                    'risk_score': 70 # Example score
-                })
-                hunting_findings.append(finding)
-        else:
-            print("WARNING: T1059.001 not found in MITRE data for PowerShell rule.")
+        for _, log_entry in logs_df.iterrows():
+            for sigma_rule in self.sigma_rules:
+                rule_id = sigma_rule['id']
+                rule_title = sigma_rule['title']
+                rule_detection_logic = sigma_rule['detection']
+                rule_tags = sigma_rule.get('tags', []) # Get tags for MITRE mapping
+                rule_level = sigma_rule.get('level', 'informational')
+                
+                # Try to map Sigma rule tags to MITRE ATT&CK techniques
+                mitre_tech_id = None
+                for tag in rule_tags:
+                    if tag.startswith('attack.t'): # Example: 'attack.t1059.001'
+                        # Clean the tag to get just the technique ID (e.g., 'T1059.001')
+                        parts = tag.split('.')
+                        if len(parts) >= 2 and parts[1].startswith('t'):
+                            mitre_tech_id = parts[1].upper().replace('T', 'T') # Ensure consistent T-id format
+                            break
+                
+                # Attempt to evaluate the rule logic against the log entry
+                # This is a very simplified interpreter. A real one would use PySigma's backend.
+                if self._evaluate_sigma_condition(log_entry, rule_detection_logic):
+                    # Found a match!
+                    finding = log_entry.to_dict()
+                    finding.update({
+                        'hunting_rule_id': rule_id,
+                        'hunting_rule_title': rule_title,
+                        'mitre_technique_id': mitre_tech_id,
+                        'mitre_technique_name': None, # Will fill this from CTI later
+                        'mitre_technique_url': None, # Will fill this from CTI later
+                        'risk_score': 0, # Default, can be set based on Sigma rule level
+                        'rule_level': rule_level
+                    })
 
+                    # Enrich with MITRE ATT&CK details if a technique ID was found
+                    if mitre_tech_id:
+                        tech_details = self.cti_manager.get_technique_by_id(mitre_tech_id)
+                        if tech_details:
+                            finding['mitre_technique_name'] = tech_details['name']
+                            finding['mitre_technique_url'] = tech_details['url']
+                            # Simple risk scoring based on Sigma level
+                            if rule_level == 'critical': finding['risk_score'] = 100
+                            elif rule_level == 'high': finding['risk_score'] = 90
+                            elif rule_level == 'medium': finding['risk_score'] = 70
+                            elif rule_level == 'low': finding['risk_score'] = 40
+                            else: finding['risk_score'] = 20 # informational, experimental etc.
 
-        # --- Rule for T1003 - OS Credential Dumping ---
-        # Description: Adversaries may attempt to dump credentials from memory.
-        cred_dump_tech = self.cti_manager.get_technique_by_id('T1003')
-        if cred_dump_tech:
-            # Look for 'lsass.exe' process access or specific credential dumping tools (e.g., mimikatz, procdump)
-            # For simplicity in sample logs, let's look for 'wmic.exe' or specific EventIDs (e.g., 4688 for process creation, then check command line)
-            susp_cred_dump_filter = (
-                logs_df['process_name'].str.contains('wmic.exe', case=False, na=False) |
-                logs_df['message'].str.contains('lsass.exe', case=False, na=False) # Example for message content
-            )
-            susp_cred_dump = logs_df[susp_cred_dump_filter]
-            for _, row in susp_cred_dump.iterrows():
-                finding = row.to_dict()
-                finding.update({
-                    'hunting_rule': 'Potential Credential Dumping Attempt',
-                    'mitre_technique_id': cred_dump_tech['id'],
-                    'mitre_technique_name': cred_dump_tech['name'],
-                    'mitre_technique_url': cred_dump_tech['url'],
-                    'risk_score': 90 # Higher score
-                })
-                hunting_findings.append(finding)
-        else:
-            print("WARNING: T1003 not found in MITRE data for Credential Dumping rule.")
-            
-        # --- Rule for T1049 - System Network Connections Discovery ---
-        # Description: Adversaries may look for connections to local and remote systems.
-        # Example: looking for `netstat` usage
-        net_conn_tech = self.cti_manager.get_technique_by_id('T1049')
-        if net_conn_tech:
-            susp_netstat = logs_df[
-                logs_df['process_name'].str.contains('netstat.exe', case=False, na=False)
-            ]
-            for _, row in susp_netstat.iterrows():
-                finding = row.to_dict()
-                finding.update({
-                    'hunting_rule': 'Network Connections Discovery via Netstat',
-                    'mitre_technique_id': net_conn_tech['id'],
-                    'mitre_technique_name': net_conn_tech['name'],
-                    'mitre_technique_url': net_conn_tech['url'],
-                    'risk_score': 50 # Lower score, often legitimate
-                })
-                hunting_findings.append(finding)
-        else:
-            print("WARNING: T1049 not found in MITRE data for Netstat rule.")
-
-
+                    hunting_findings.append(finding)
+        
         # Convert findings list to DataFrame
         findings_df = pd.DataFrame(hunting_findings)
         
-        # Ensure all columns from the NORMALIZED_LOG_SCHEMA plus hunting-specific columns are present
-        # This prevents issues if a finding doesn't naturally have all log_schema fields or vice-versa
-        all_expected_cols = list(NORMALIZED_LOG_SCHEMA.keys()) + [
-            'hunting_rule', 'mitre_technique_id', 'mitre_technique_name', 
-            'mitre_technique_url', 'risk_score'
-        ]
-        
-        for col in all_expected_cols:
-            if col not in findings_df.columns:
-                findings_df[col] = None # Add missing columns with None
-
-        # Reorder columns for a consistent output format
-        # Prioritize key finding details at the beginning
+        # Define the desired output columns for findings
         output_cols_order = [
-            'timestamp', 'hostname', 'username', 'process_name', 
-            'hunting_rule', 'mitre_technique_id', 'mitre_technique_name', 
+            'timestamp', 'hostname', 'username', 'process_name',
+            'hunting_rule_id', 'hunting_rule_title', 'rule_level',
+            'mitre_technique_id', 'mitre_technique_name', 
             'risk_score', 'mitre_technique_url',
             'event_id', 'message', 'source_ip', 'destination_ip', 'action'
         ]
         
-        # Ensure only columns in output_cols_order are present and in that order
+        # Ensure all expected output columns are present and in order
+        for col in output_cols_order:
+            if col not in findings_df.columns:
+                findings_df[col] = None # Add missing columns with None
+        
+        # Filter and reorder DataFrame columns
         findings_df = findings_df[output_cols_order]
         
+        # Remove duplicate findings if the same log entry triggers multiple rules or same rule multiple times for simplicity
+        findings_df.drop_duplicates(inplace=True) 
+
         return findings_df
 
     def hunt(self, log_path: str) -> pd.DataFrame:
@@ -159,46 +217,3 @@ class ThreatHuntingEngine:
         print(f"Hunt complete. Found {len(findings_df)} potential findings.")
         return findings_df
 
-# --- Example Usage (for testing this module) ---
-if __name__ == "__main__":
-    # Initialize CTI Manager (this will load/download MITRE data)
-    cti_manager = CTIManager()
-
-    # Initialize the Threat Hunting Engine
-    hunting_engine = ThreatHuntingEngine(cti_manager)
-
-    # Path to your sample log file
-    sample_log_file = "data/logs/sample_log.csv"
-
-    # Ensure the sample log exists (updated to include more diverse processes for hunting)
-    if not os.path.exists("data/logs"):
-        os.makedirs("data/logs")
-    if not os.path.exists(sample_log_file):
-        with open(sample_log_file, "w") as f:
-            f.write("TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData\n")
-            f.write("2024-06-17 10:00:00,HOST-01,user1,powershell.exe,4104,192.168.1.10,8.8.8.8,Process started\n")
-            f.write("2024-06-17 10:05:00,HOST-02,admin,cmd.exe,4688,10.0.0.5,192.168.1.1,Account logon\n")
-            f.write("2024-06-17 10:10:00,HOST-01,user1,calc.exe,4688,,,User opened calculator\n")
-            f.write("2024-06-17 10:15:00,HOST-03,guest,explorer.exe,4624,172.16.0.1,172.16.0.10,Successful logon\n")
-            f.write("2024-06-17 10:20:00,HOST-01,user1,wmic.exe,4688,,,WMIC call to query process list\n") # This should trigger T1003/T1047
-            f.write("2024-06-17 10:25:00,HOST-04,sysadmin,netstat.exe,4688,,,Network connection status\n") # This should trigger T1049
-            f.write("2024-06-17 10:30:00,HOST-02,attacker,cmd.exe,4688,192.168.1.50,1.2.3.4,Suspicious network connection attempt\n")
-            f.write("2024-06-17 10:35:00,HOST-01,svc_account,services.exe,7036,,,Service started\n")
-        print(f"Generated a sample CSV log file at {sample_log_file}")
-
-    # Run the hunt
-    findings = hunting_engine.hunt(sample_log_file)
-
-    if not findings.empty:
-        print("\n--- Threat Hunt Findings ---")
-        # Use to_string() for full DataFrame output, or .head() for truncated
-        # You might need to adjust terminal width to see all columns
-        print(findings.to_string()) 
-        
-        # You could also save to CSV:
-        # output_dir = "output/"
-        # os.makedirs(output_dir, exist_ok=True)
-        # findings.to_csv(os.path.join(output_dir, "threat_hunt_findings.csv"), index=False)
-        # print(f"\nFindings saved to {os.path.join(output_dir, 'threat_hunt_findings.csv')}")
-    else:
-        print("\nNo threat hunt findings detected for the provided logs.")
