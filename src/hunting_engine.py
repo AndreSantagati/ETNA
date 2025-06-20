@@ -6,16 +6,18 @@ import re
 
 from src.log_parser import LogParserFactory, NORMALIZED_LOG_SCHEMA
 from src.cti_integration import CTIManager
-from src.ttp_mapping import SigmaRuleLoader # IMPORT SigmaRuleLoader again
+from src.ttp_mapping import SigmaRuleLoader
 from typing import Dict, List, Any
+from sigma.rule import SigmaRuleTag # Import SigmaRuleTag explicitly for correct access
+
 
 class ThreatHuntingEngine:
-    def __init__(self, cti_manager: CTIManager, sigma_rule_loader: SigmaRuleLoader): # Pass SigmaRuleLoader
+    def __init__(self, cti_manager: CTIManager, sigma_rule_loader: SigmaRuleLoader):
         self.cti_manager = cti_manager
-        self.sigma_rule_loader = sigma_rule_loader # Store the Sigma rule loader
+        self.sigma_rule_loader = sigma_rule_loader
         
         self.mitre_techniques_df = self.cti_manager.get_techniques_dataframe()
-        self.sigma_rules = self.sigma_rule_loader.get_loaded_rules() # Load Sigma rules here
+        self.sigma_rules = self.sigma_rule_loader.get_loaded_rules()
 
         if self.mitre_techniques_df.empty:
             print("WARNING: MITRE ATT&CK techniques DataFrame is empty. Hunting rules may not find matches.")
@@ -31,82 +33,91 @@ class ThreatHuntingEngine:
     def _evaluate_sigma_condition(self, log_entry: pd.Series, detection_logic: Dict[str, Any]) -> bool:
         """
         Evaluates a simplified Sigma detection logic against a single log entry.
-        This handles 'selection' and basic 'condition' logic (AND/OR of selections).
-        It expects detection_logic to be the dictionary from rule.detection.parsed_detection.
+        This expects detection_logic to be the reconstructed dictionary:
+        { 'selection_name': {'field|operator': ['value', ...]}, 'condition': 'selection_name AND other_selection' }
         """
         selections = {}
-        for sel_name, sel_conditions in detection_logic.items():
-            if sel_name == 'condition': # Skip the 'condition' string itself for now
+        
+        # Get the main condition string (e.g., 'selection' or 'selection_wmic and selection_keywords')
+        # Default to 'False' if no condition, meaning rule won't match.
+        main_condition_str = detection_logic.get('condition', 'False').lower() 
+
+        # Iterate through selection definitions within the detection_logic
+        for sel_name, sel_conditions_map in detection_logic.items():
+            if sel_name == 'condition': # Skip the 'condition' entry itself
                 continue
 
-            selection_match = True # Assume AND logic within a selection
-            if isinstance(sel_conditions, dict):
-                for field_key, patterns in sel_conditions.items():
-                    # Handle specific Sigma syntax: e.g., 'Image|contains'
-                    field_name = field_key.split('|')[0]
-                    operator = field_key.split('|')[1] if '|' in field_key else 'equals' # Default to equals
+            selection_match_overall = True # Assume AND logic between field-operator pairs within a selection
+            
+            if isinstance(sel_conditions_map, dict): # Check if the selection definition is a dictionary of field:patterns
+                for field_key_operator, patterns in sel_conditions_map.items():
+                    # Parse "field|operator" string (e.g., "Image|contains")
+                    parts = field_key_operator.split('|', 1) # Split only on first '|'
+                    field_name_raw = parts[0]
+                    operator_raw = parts[1] if len(parts) > 1 else 'equals' # Default to 'equals' if no explicit operator in key
                     
-                    if field_name not in log_entry.index or pd.isna(log_entry[field_name]):
-                        selection_match = False # Field not present in log or is NaN/None
+                    # Map common Sigma fields to our normalized log fields
+                    log_field_name = field_name_raw
+                    if field_name_raw.lower() == 'image':
+                        log_field_name = 'process_name'
+                    elif field_name_raw.lower() == 'commandline':
+                        log_field_name = 'message' # Or to a 'command_line' field if you normalize it
+
+                    if log_field_name not in log_entry.index or pd.isna(log_entry[log_field_name]):
+                        selection_match_overall = False # Field not present in log or is NaN/None
                         break
 
-                    log_value = str(log_entry[field_name]).lower()
+                    log_value = str(log_entry[log_field_name]).lower() # Convert log value to string for matching
 
-                    if isinstance(patterns, str):
-                        patterns = [patterns] # Normalize to list for consistent iteration
+                    if isinstance(patterns, str): # Normalize single pattern to list for consistent iteration
+                        patterns = [patterns] 
 
-                    if isinstance(patterns, list): # OR logic within patterns list
-                        pattern_match_found = False
+                    if isinstance(patterns, list): # OR logic within patterns list for a single field
+                        pattern_match_found_for_field = False
                         for pattern in patterns:
                             pat_lower = str(pattern).lower()
-                            if operator == 'contains' or operator == 'endswith' or operator == 'startswith' or operator == 'equals':
-                                # Basic contains, starts/ends with, for 'Image|contains' etc.
-                                if '*' in pat_lower: # Handle wildcards in pattern
-                                    pat_regex = pat_lower.replace('*', '.*')
+                            
+                            # Apply operator logic (simplified to 'contains' if no explicit operator)
+                            if operator_raw == 'contains':
+                                if pat_lower in log_value: pattern_match_found_for_field = True; break
+                            elif operator_raw == 'startswith':
+                                if log_value.startswith(pat_lower): pattern_match_found_for_field = True; break
+                            elif operator_raw == 'endswith':
+                                if log_value.endswith(pat_lower): pattern_match_found_for_field = True; break
+                            elif operator_raw == 'equals': # Direct string comparison
+                                if log_value == pat_lower: pattern_match_found_for_field = True; break
+                            elif '*' in pat_lower: # Handle wildcards in pattern as regex
+                                try:
+                                    pat_regex = re.escape(pat_lower).replace(r'\*', '.*') # Escape special regex chars, then replace Sigma '*'
                                     if re.search(pat_regex, log_value):
-                                        pattern_match_found = True
+                                        pattern_match_found_for_field = True
                                         break
-                                elif operator == 'contains' and pat_lower in log_value:
-                                    pattern_match_found = True
-                                    break
-                                elif operator == 'startswith' and log_value.startswith(pat_lower):
-                                    pattern_match_found = True
-                                    break
-                                elif operator == 'endswith' and log_value.endswith(pat_lower):
-                                    pattern_match_found = True
-                                    break
-                                elif operator == 'equals' and log_value == pat_lower: # For exact equals
-                                    pattern_match_found = True
-                                    break
-                            # Add more operators as needed (e.g., 'all', 're', 'lt', 'gt')
-                        if not pattern_match_found:
-                            selection_match = False
+                                except re.error as regex_err:
+                                    print(f"WARNING: Invalid regex pattern '{pat_lower}' in rule: {regex_err}. Skipping.")
+                                    pattern_match_found_for_field = False # Treat as no match if regex is invalid
+                        if not pattern_match_found_for_field:
+                            selection_match_overall = False
                             break
-                    else: # Invalid pattern format in Sigma rule
-                        selection_match = False
+                    else: # If patterns value is not a string or list (invalid rule format for this simplified eval)
+                        selection_match_overall = False
                         break
-                selections[sel_name] = selection_match # Store result of this selection
-            else: # If sel_conditions is not a dict (e.g., 'condition' string itself)
-                selections[sel_name] = False # Treat as non-match for this simplified parser
+            else: # If sel_conditions_map is not a dictionary (e.g., 'condition' string or unsupported structure)
+                selection_match_overall = False 
 
-        # Evaluate the main condition (e.g., "selection", "selection_wmic and selection_keywords")
-        main_condition_str = detection_logic.get('condition', '').lower()
-        if not main_condition_str:
-            return False # No condition, no match
+            selections[sel_name] = selection_match_overall # Store result of this selection (e.g., 'selection': True/False)
 
-        # Simplified condition evaluation: replace selection names with their boolean results
-        # This is a very basic eval, vulnerable to complex logic/injection if not careful
-        # For simple 'selection' or 'sel1 and sel2' it's fine.
+        # Evaluate the main condition string using the boolean results from 'selections'
         try:
-            # Replace selection names like 'selection' with their boolean result from 'selections' dict
             evaluated_condition = main_condition_str
             for sel_name, sel_val in selections.items():
-                evaluated_condition = evaluated_condition.replace(sel_name, str(sel_val))
+                # Replace full words (e.g., 'selection') with their boolean string representation ('True' or 'False')
+                # Use regex with word boundaries to avoid partial replacements (e.g., replacing 'sel' in 'selection_1')
+                evaluated_condition = re.sub(r'\b' + re.escape(sel_name) + r'\b', str(sel_val), evaluated_condition)
 
-            # Use eval for simple boolean logic (e.g., "True and False")
+            # Python's eval() can interpret boolean expressions like "True and False"
             return eval(evaluated_condition)
         except Exception as e:
-            print(f"WARNING: Could not evaluate Sigma rule condition '{main_condition_str}': {e}. Skipping rule.")
+            print(f"WARNING: Could not evaluate Sigma rule condition expression '{main_condition_str}': {e}. Skipping rule.")
             return False
 
 
@@ -116,11 +127,12 @@ class ThreatHuntingEngine:
         """
         hunting_findings = []
 
-        # Ensure all columns needed by Sigma rules are strings and filled
+        # Ensure all columns potentially needed by Sigma rules are strings and filled
+        # Map Sigma 'Image' to 'process_name' and 'CommandLine' to 'message' based on our sample logs
         for col in ['process_name', 'event_id', 'message', 'source_ip', 'destination_ip', 'hostname', 'username']:
             if col not in logs_df.columns:
-                logs_df[col] = None # Add missing columns
-            logs_df[col] = logs_df[col].astype(str).fillna('') # Convert to string, fill NaN with empty string
+                logs_df[col] = None
+            logs_df[col] = logs_df[col].astype(str).fillna('')
 
         if not self.sigma_rules:
             print("No Sigma rules available to apply.")
@@ -132,17 +144,21 @@ class ThreatHuntingEngine:
             for sigma_rule in self.sigma_rules:
                 rule_id = sigma_rule['id']
                 rule_title = sigma_rule['title']
-                rule_detection_logic = sigma_rule['detection']
-                rule_tags = sigma_rule.get('tags', [])
+                rule_detection_logic = sigma_rule['detection'] # This is now the correctly reconstructed dict from ttp_mapping
+                rule_tags = sigma_rule.get('tags', []) # This is now a list of SigmaRuleTag objects
                 rule_level = sigma_rule.get('level', 'informational')
                 
                 mitre_tech_id = None
-                for tag in rule_tags:
-                    if tag.startswith('attack.t'):
-                        parts = tag.split('.')
-                        if len(parts) >= 2 and parts[1].startswith('t'):
-                            mitre_tech_id = parts[1].upper()
-                            break
+                # CORRECTED: Access tag.name attribute for SigmaRuleTag objects
+                for tag_obj in rule_tags: # Iterate through SigmaRuleTag objects
+                    if isinstance(tag_obj, SigmaRuleTag) and hasattr(tag_obj, 'name'):
+                        tag_name_str = str(tag_obj.name) # Get the string name from the object
+                        if tag_name_str.startswith('attack.t'):
+                            parts = tag_name_str.split('.')
+                            if len(parts) >= 2 and parts[1].startswith('t'):
+                                mitre_tech_id = parts[1].upper() # Extract TXXXX.YYY
+                                break
+                    # Else, if it's not a SigmaRuleTag or has no name, skip it
                 
                 if self._evaluate_sigma_condition(log_entry, rule_detection_logic):
                     # Found a match!
