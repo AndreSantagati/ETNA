@@ -2,15 +2,15 @@
 
 import pandas as pd
 import os
-import re # We'll need regex for matching Sigma rule patterns
+import re
 
 from src.log_parser import LogParserFactory, NORMALIZED_LOG_SCHEMA
 from src.cti_integration import CTIManager
-from src.ttp_mapping import SigmaRuleLoader # Import our SigmaRuleLoader
+from src.ttp_mapping import SigmaRuleLoader # IMPORT SigmaRuleLoader again
 from typing import Dict, List, Any
 
 class ThreatHuntingEngine:
-    def __init__(self, cti_manager: CTIManager, sigma_rule_loader: SigmaRuleLoader):
+    def __init__(self, cti_manager: CTIManager, sigma_rule_loader: SigmaRuleLoader): # Pass SigmaRuleLoader
         self.cti_manager = cti_manager
         self.sigma_rule_loader = sigma_rule_loader # Store the Sigma rule loader
         
@@ -31,74 +31,84 @@ class ThreatHuntingEngine:
     def _evaluate_sigma_condition(self, log_entry: pd.Series, detection_logic: Dict[str, Any]) -> bool:
         """
         Evaluates a simplified Sigma detection logic against a single log entry.
-        NOTE: This is a highly simplified interpreter for demonstration.
-              A full PySigma backend would be more robust.
+        This handles 'selection' and basic 'condition' logic (AND/OR of selections).
+        It expects detection_logic to be the dictionary from rule.detection.parsed_detection.
         """
-        # Simplistic handling of 'selection' and 'condition' (AND/OR logic)
-        # Assumes 'condition: selection' or 'condition: selection1 and selection2' etc.
-        # This implementation will handle basic 'selection' dictionaries with string/list matching.
+        selections = {}
+        for sel_name, sel_conditions in detection_logic.items():
+            if sel_name == 'condition': # Skip the 'condition' string itself for now
+                continue
 
-        if 'selection' in detection_logic:
-            selection_dict = detection_logic['selection']
-            match_found = True # Assume AND logic between selection fields initially
-
-            for field, patterns in selection_dict.items():
-                if field not in log_entry.index or pd.isna(log_entry[field]):
-                    match_found = False # Field not present in log or is NaN/None
-                    break
-
-                log_value = str(log_entry[field]).lower() # Convert log value to string for matching
-
-                if isinstance(patterns, str): # Single string pattern
-                    # Check if the pattern is in the log value
-                    if patterns.startswith('*') and patterns.endswith('*'):
-                        # Wildcard match (e.g., *powershell*)
-                        if patterns[1:-1].lower() not in log_value:
-                            match_found = False
-                            break
-                    elif patterns.endswith('*'):
-                        # Starts with match (e.g., powershell*)
-                        if not log_value.startswith(patterns[:-1].lower()):
-                            match_found = False
-                            break
-                    elif patterns.startswith('*'):
-                        # Ends with match (e.g., *powershell)
-                        if not log_value.endswith(patterns[1:].lower()):
-                            match_found = False
-                            break
-                    else: # Exact match or contains
-                        if patterns.lower() not in log_value: # Simplified to 'contains' for non-exact
-                            match_found = False
-                            break
-                elif isinstance(patterns, list): # List of patterns (OR logic within list)
-                    list_match_found = False
-                    for pattern in patterns:
-                        if isinstance(pattern, str):
-                            if pattern.startswith('*') and pattern.endswith('*'):
-                                if pattern[1:-1].lower() in log_value:
-                                    list_match_found = True
-                                    break
-                            elif pattern.endswith('*'):
-                                if log_value.startswith(pattern[:-1].lower()):
-                                    list_match_found = True
-                                    break
-                            elif pattern.startswith('*'):
-                                if log_value.endswith(pattern[1:].lower()):
-                                    list_match_found = True
-                                    break
-                            else:
-                                if pattern.lower() in log_value: # Simplified to 'contains'
-                                    list_match_found = True
-                                    break
-                    if not list_match_found:
-                        match_found = False
+            selection_match = True # Assume AND logic within a selection
+            if isinstance(sel_conditions, dict):
+                for field_key, patterns in sel_conditions.items():
+                    # Handle specific Sigma syntax: e.g., 'Image|contains'
+                    field_name = field_key.split('|')[0]
+                    operator = field_key.split('|')[1] if '|' in field_key else 'equals' # Default to equals
+                    
+                    if field_name not in log_entry.index or pd.isna(log_entry[field_name]):
+                        selection_match = False # Field not present in log or is NaN/None
                         break
-                # Add more complex Sigma features like regex, not, all, etc. here if needed
-                # For this MVP, we're simplifying.
-            return match_found
-        
-        # If no explicit selection logic, consider it not matched for now
-        return False
+
+                    log_value = str(log_entry[field_name]).lower()
+
+                    if isinstance(patterns, str):
+                        patterns = [patterns] # Normalize to list for consistent iteration
+
+                    if isinstance(patterns, list): # OR logic within patterns list
+                        pattern_match_found = False
+                        for pattern in patterns:
+                            pat_lower = str(pattern).lower()
+                            if operator == 'contains' or operator == 'endswith' or operator == 'startswith' or operator == 'equals':
+                                # Basic contains, starts/ends with, for 'Image|contains' etc.
+                                if '*' in pat_lower: # Handle wildcards in pattern
+                                    pat_regex = pat_lower.replace('*', '.*')
+                                    if re.search(pat_regex, log_value):
+                                        pattern_match_found = True
+                                        break
+                                elif operator == 'contains' and pat_lower in log_value:
+                                    pattern_match_found = True
+                                    break
+                                elif operator == 'startswith' and log_value.startswith(pat_lower):
+                                    pattern_match_found = True
+                                    break
+                                elif operator == 'endswith' and log_value.endswith(pat_lower):
+                                    pattern_match_found = True
+                                    break
+                                elif operator == 'equals' and log_value == pat_lower: # For exact equals
+                                    pattern_match_found = True
+                                    break
+                            # Add more operators as needed (e.g., 'all', 're', 'lt', 'gt')
+                        if not pattern_match_found:
+                            selection_match = False
+                            break
+                    else: # Invalid pattern format in Sigma rule
+                        selection_match = False
+                        break
+                selections[sel_name] = selection_match # Store result of this selection
+            else: # If sel_conditions is not a dict (e.g., 'condition' string itself)
+                selections[sel_name] = False # Treat as non-match for this simplified parser
+
+        # Evaluate the main condition (e.g., "selection", "selection_wmic and selection_keywords")
+        main_condition_str = detection_logic.get('condition', '').lower()
+        if not main_condition_str:
+            return False # No condition, no match
+
+        # Simplified condition evaluation: replace selection names with their boolean results
+        # This is a very basic eval, vulnerable to complex logic/injection if not careful
+        # For simple 'selection' or 'sel1 and sel2' it's fine.
+        try:
+            # Replace selection names like 'selection' with their boolean result from 'selections' dict
+            evaluated_condition = main_condition_str
+            for sel_name, sel_val in selections.items():
+                evaluated_condition = evaluated_condition.replace(sel_name, str(sel_val))
+
+            # Use eval for simple boolean logic (e.g., "True and False")
+            return eval(evaluated_condition)
+        except Exception as e:
+            print(f"WARNING: Could not evaluate Sigma rule condition '{main_condition_str}': {e}. Skipping rule.")
+            return False
+
 
     def _apply_hunting_rules(self, logs_df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -106,7 +116,7 @@ class ThreatHuntingEngine:
         """
         hunting_findings = []
 
-        # Ensure all columns needed by Sigma rules are strings or handled
+        # Ensure all columns needed by Sigma rules are strings and filled
         for col in ['process_name', 'event_id', 'message', 'source_ip', 'destination_ip', 'hostname', 'username']:
             if col not in logs_df.columns:
                 logs_df[col] = None # Add missing columns
@@ -123,21 +133,17 @@ class ThreatHuntingEngine:
                 rule_id = sigma_rule['id']
                 rule_title = sigma_rule['title']
                 rule_detection_logic = sigma_rule['detection']
-                rule_tags = sigma_rule.get('tags', []) # Get tags for MITRE mapping
+                rule_tags = sigma_rule.get('tags', [])
                 rule_level = sigma_rule.get('level', 'informational')
                 
-                # Try to map Sigma rule tags to MITRE ATT&CK techniques
                 mitre_tech_id = None
                 for tag in rule_tags:
-                    if tag.startswith('attack.t'): # Example: 'attack.t1059.001'
-                        # Clean the tag to get just the technique ID (e.g., 'T1059.001')
+                    if tag.startswith('attack.t'):
                         parts = tag.split('.')
                         if len(parts) >= 2 and parts[1].startswith('t'):
-                            mitre_tech_id = parts[1].upper().replace('T', 'T') # Ensure consistent T-id format
+                            mitre_tech_id = parts[1].upper()
                             break
                 
-                # Attempt to evaluate the rule logic against the log entry
-                # This is a very simplified interpreter. A real one would use PySigma's backend.
                 if self._evaluate_sigma_condition(log_entry, rule_detection_logic):
                     # Found a match!
                     finding = log_entry.to_dict()
@@ -145,31 +151,29 @@ class ThreatHuntingEngine:
                         'hunting_rule_id': rule_id,
                         'hunting_rule_title': rule_title,
                         'mitre_technique_id': mitre_tech_id,
-                        'mitre_technique_name': None, # Will fill this from CTI later
-                        'mitre_technique_url': None, # Will fill this from CTI later
-                        'risk_score': 0, # Default, can be set based on Sigma rule level
+                        'mitre_technique_name': None,
+                        'mitre_technique_url': None,
+                        'risk_score': 0,
                         'rule_level': rule_level
                     })
 
-                    # Enrich with MITRE ATT&CK details if a technique ID was found
+                    # Enrich with MITRE ATT&CK details
                     if mitre_tech_id:
                         tech_details = self.cti_manager.get_technique_by_id(mitre_tech_id)
                         if tech_details:
                             finding['mitre_technique_name'] = tech_details['name']
                             finding['mitre_technique_url'] = tech_details['url']
-                            # Simple risk scoring based on Sigma level
+                            # Simple risk scoring based on Sigma level (can be refined)
                             if rule_level == 'critical': finding['risk_score'] = 100
                             elif rule_level == 'high': finding['risk_score'] = 90
                             elif rule_level == 'medium': finding['risk_score'] = 70
                             elif rule_level == 'low': finding['risk_score'] = 40
-                            else: finding['risk_score'] = 20 # informational, experimental etc.
+                            else: finding['risk_score'] = 20
 
                     hunting_findings.append(finding)
         
-        # Convert findings list to DataFrame
         findings_df = pd.DataFrame(hunting_findings)
         
-        # Define the desired output columns for findings
         output_cols_order = [
             'timestamp', 'hostname', 'username', 'process_name',
             'hunting_rule_id', 'hunting_rule_title', 'rule_level',
@@ -178,15 +182,11 @@ class ThreatHuntingEngine:
             'event_id', 'message', 'source_ip', 'destination_ip', 'action'
         ]
         
-        # Ensure all expected output columns are present and in order
         for col in output_cols_order:
             if col not in findings_df.columns:
-                findings_df[col] = None # Add missing columns with None
+                findings_df[col] = None
         
-        # Filter and reorder DataFrame columns
         findings_df = findings_df[output_cols_order]
-        
-        # Remove duplicate findings if the same log entry triggers multiple rules or same rule multiple times for simplicity
         findings_df.drop_duplicates(inplace=True) 
 
         return findings_df
@@ -201,14 +201,14 @@ class ThreatHuntingEngine:
             normalized_logs_df = parser.parse()
         except FileNotFoundError:
             print(f"Error: Log file not found at {log_path}. Please check the path.")
-            return pd.DataFrame(columns=NORMALIZED_LOG_SCHEMA.keys()) # Return empty df
+            return pd.DataFrame(columns=list(NORMALIZED_LOG_SCHEMA.keys()))
         except ValueError as e:
             print(f"Error parsing log file: {e}")
-            return pd.DataFrame(columns=NORMALIZED_LOG_SCHEMA.keys()) # Return empty df
+            return pd.DataFrame(columns=list(NORMALIZED_LOG_SCHEMA.keys()))
 
         if normalized_logs_df.empty:
             print("No logs to hunt in (DataFrame is empty after parsing). Exiting hunt.")
-            return pd.DataFrame(columns=NORMALIZED_LOG_SCHEMA.keys()) # Return empty df
+            return pd.DataFrame(columns=list(NORMALIZED_LOG_SCHEMA.keys()))
 
         print(f"Hunting across {len(normalized_logs_df)} normalized log entries...")
         
@@ -216,4 +216,3 @@ class ThreatHuntingEngine:
         
         print(f"Hunt complete. Found {len(findings_df)} potential findings.")
         return findings_df
-
