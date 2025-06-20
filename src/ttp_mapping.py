@@ -3,11 +3,14 @@
 import os
 import yaml
 from typing import List, Dict, Any, Optional
+
 from sigma.collection import SigmaCollection
+from sigma.rule import SigmaRule  # NEW: Import SigmaRule for individual rule parsing
 from sigma.exceptions import SigmaCollectionError
 
-class SigmaRuleLoader:
-    def __init__(self, rules_path: str = 'data/sigma_rules/'):
+
+class SigmaRuleLoader:  # Renamed back to SigmaRuleLoader for PySigma version
+    def __init__(self, rules_path: str = 'data/sigma_rules/'): # Changed back to sigma_rules
         self.rules_path = rules_path
         os.makedirs(self.rules_path, exist_ok=True)
         self.sigma_collection: Optional[SigmaCollection] = None
@@ -40,29 +43,45 @@ class SigmaRuleLoader:
             return self.loaded_rules
 
         print(f"Loading {len(rule_files)} Sigma rules from {self.rules_path}...")
+        
+        individual_sigma_rule_objects: List[SigmaRule] = [] # List to hold parsed SigmaRule objects
+        for rule_file in rule_files:
+            try:
+                with open(rule_file, 'r', encoding='utf-8') as f:
+                    rule_content_str = f.read()
+                    rule = SigmaRule.from_yaml(rule_content_str) # Load individual SigmaRule from YAML content
+                    individual_sigma_rule_objects.append(rule)
+            except Exception as e:
+                print(f"WARNING: Failed to load Sigma rule from {rule_file}: {e}")
+        
+        if not individual_sigma_rule_objects:
+            print("No valid individual Sigma rules were loaded after attempting to parse files.")
+            self.loaded_rules = []
+            return self.loaded_rules
+
         try:
-            # PySigma can load directly from a list of file paths
-            self.sigma_collection = SigmaCollection.from_files(rule_files)
+            # Create SigmaCollection from the list of individual SigmaRule objects
+            self.sigma_collection = SigmaCollection(individual_sigma_rule_objects)
             
             self.loaded_rules = []
-            for rule in self.sigma_collection.rules:
+            for rule in self.sigma_collection.rules: # Iterate through rules in the collection
                 # Extract relevant information from each parsed Sigma rule
                 self.loaded_rules.append({
                     'id': rule.id,
                     'title': rule.title,
                     'description': rule.description,
-                    'detection': rule.detection, # This is the parsed detection logic
+                    'detection': rule.detection.parsed_detection, # Use .parsed_detection to get the dict representation
                     'level': rule.level,
-                    'tags': rule.tags, # MITRE ATT&CK tags should be here
+                    'tags': rule.tags,
                     'logsource': rule.logsource.to_dict() if rule.logsource else None,
-                    'parsed_rule': rule # Keep reference to the full parsed rule object if needed
+                    # 'parsed_rule': rule # Can keep reference to the full parsed rule object if needed
                 })
             print(f"Successfully loaded and parsed {len(self.loaded_rules)} Sigma rules.")
         except SigmaCollectionError as e:
-            print(f"ERROR: Failed to load Sigma rules from {self.rules_path}: {e}")
+            print(f"ERROR: Failed to create SigmaCollection from loaded rules: {e}")
             self.loaded_rules = []
         except Exception as e:
-            print(f"An unexpected error occurred while loading Sigma rules: {e}")
+            print(f"An unexpected error occurred while creating SigmaCollection: {e}")
             self.loaded_rules = []
             
         return self.loaded_rules
@@ -103,22 +122,57 @@ tags:
     - attack.t1059.001
 level: medium
 """
+    # Another sample rule for WMIC/Credential Access
+    dummy_wmic_rule_path = os.path.join(dummy_rules_dir, "wmic_credential_access.yml")
+    dummy_wmic_rule_content = """
+title: WMIC usage for Credential Access
+id: d1c9b2f3-e4d5-4c67-a89b-01c2d3e4f5a6
+status: experimental
+description: Detects suspicious WMIC usage potentially related to credential access or system information.
+author: Your Name @YourHandle
+date: 2024/06/18
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_wmic:
+        Image|endswith:
+            - 'wmic.exe'
+    selection_keywords:
+        CommandLine|contains:
+            - 'shadowcopy'
+            - 'lsass.exe'
+            - 'hash'
+    condition: selection_wmic and selection_keywords
+tags:
+    - attack.collection
+    - attack.t1003
+    - attack.t1047
+level: high
+"""
+
+
     if not os.path.exists(dummy_rule_path):
         with open(dummy_rule_path, "w") as f:
             f.write(dummy_sigma_rule_content)
-        print(f"Generated a sample Sigma rule at {dummy_rule_path}")
+        print(f"Generated a sample Sigma PowerShell rule at {dummy_rule_path}")
+    if not os.path.exists(dummy_wmic_rule_path):
+        with open(dummy_wmic_rule_path, "w") as f:
+            f.write(dummy_wmic_rule_content)
+        print(f"Generated a sample Sigma WMIC rule at {dummy_wmic_rule_path}")
     
     loader = SigmaRuleLoader(rules_path=dummy_rules_dir)
     loaded_rules = loader.load_sigma_rules(force_reload=True)
 
     if loaded_rules:
-        print("\nLoaded Sigma Rules (first 1):")
-        for rule in loaded_rules[:1]:
+        print(f"\nLoaded Sigma Rules ({len(loaded_rules)} total):")
+        for i, rule in enumerate(loaded_rules):
+            print(f"  --- Rule {i+1} ---")
             print(f"  ID: {rule['id']}")
             print(f"  Title: {rule['title']}")
             print(f"  Level: {rule['level']}")
             print(f"  Tags: {rule['tags']}")
             print(f"  Logsource: {rule['logsource']}")
-            # print(f"  Detection Logic (PySigma object): {rule['detection']}") # For deeper inspection
+            print(f"  Detection Logic (as dict): {rule['detection']}") # Show the parsed dict
     else:
         print("\nNo Sigma rules were loaded.")
