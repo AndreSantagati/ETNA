@@ -1,5 +1,9 @@
-﻿TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData
+TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData
 2024-06-17 10:00:00,HOST-01,user1,powershell.exe,4104,192.168.1.10,8.8.8.8,Process started
 2024-06-17 10:05:00,HOST-02,admin,cmd.exe,4688,10.0.0.5,192.168.1.1,Account logon
 2024-06-17 10:10:00,HOST-01,user1,calc.exe,4688,,,User opened calculator
 2024-06-17 10:15:00,HOST-03,guest,explorer.exe,4624,172.16.0.1,172.16.0.10,Successful logon
+2024-06-17 10:20:00,HOST-01,user1,netstat.exe,4688,,,netstat -an
+2024-06-17 10:25:00,HOST-04,admin,wmic.exe,4688,,,wmic process list shadowcopy
+2024-06-17 10:30:00,HOST-02,attacker,powershell.exe,4688,192.168.1.50,1.2.3.4,powershell.exe -enc base64content
+2024-06-17 10:35:00,HOST-05,user2,pwsh.exe,4688,,,pwsh -Command Get-Process

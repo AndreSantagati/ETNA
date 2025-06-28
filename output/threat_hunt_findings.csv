@@ -1,0 +1,2 @@
+timestamp,hostname,username,process_name,hunting_rule_id,hunting_rule_title,rule_level,mitre_technique_id,mitre_technique_name,risk_score,mitre_technique_url,event_id,message,source_ip,destination_ip,action
+2024-06-17 10:00:00,HOST-01,user1,powershell.exe,d76a74b1-e2c8-4a92-b437-02b4d96a74b1,PowerShell Process Creation Keywords,medium,,,0,,4104,Process started,192.168.1.10,8.8.8.8,

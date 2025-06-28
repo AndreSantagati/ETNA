@@ -1,0 +1,521 @@
+Loading MITRE ATT&CK data from local file: data/cti/enterprise-attack.json
+DEBUG: Total objects found in MITRE data: 22652
+DEBUG: Found 823 'attack-pattern' objects during parsing.
+DEBUG: Types of objects found in MITRE data: {'x-mitre-matrix': 1, 'course-of-action': 268, 'malware': 667, 'tool': 91, 'x-mitre-tactic': 14, 'attack-pattern': 823, 'x-mitre-data-component': 109, 'intrusion-set': 181, 'campaign': 47, 'x-mitre-data-source': 38, 'relationship': 20411, 'identity': 1, 'marking-definition': 1}
+Parsed 823 MITRE ATT&CK techniques into DataFrame.
+Loading 3 Sigma rules from data/sigma_rules/...
+Successfully loaded and parsed 3 Sigma rules.
+Hunting Engine initialized with 823 MITRE ATT&CK techniques.
+Hunting Engine loaded 3 Sigma rules.
+
+--- Starting Threat Hunt for logs from: data/logs/sample_log.csv ---
+Successfully parsed and normalized 8 records from data/logs/sample_log.csv
+Hunting across 8 normalized log entries...
+Applying 3 Sigma rules to logs...
+
+DEBUG_EVAL: Evaluating log_entry (Process: powershell.exe, Message: 'Process started')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'powershell.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: powershell.exe, Message: 'Process started')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'powershell.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: powershell.exe, Message: 'Process started')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'powershell.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'process started'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: cmd.exe, Message: 'Account logon')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'cmd.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: cmd.exe, Message: 'Account logon')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'cmd.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: cmd.exe, Message: 'Account logon')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'cmd.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'account logon'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: calc.exe, Message: 'User opened calculator')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'calc.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: calc.exe, Message: 'User opened calculator')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'calc.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: calc.exe, Message: 'User opened calculator')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'calc.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'user opened calculator'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: explorer.exe, Message: 'Successful logon')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'explorer.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: explorer.exe, Message: 'Successful logon')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'explorer.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: explorer.exe, Message: 'Successful logon')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'explorer.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'successful logon'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: netstat.exe, Message: 'netstat -an')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'netstat.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: netstat.exe, Message: 'netstat -an')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'netstat.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: netstat.exe, Message: 'netstat -an')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'netstat.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'netstat -an'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: wmic.exe, Message: 'wmic process list shadowcopy')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'wmic.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: wmic.exe, Message: 'wmic process list shadowcopy')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'wmic.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: wmic.exe, Message: 'wmic process list shadowcopy')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'wmic.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'wmic process list shadowcopy'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: powershell.exe, Message: 'powershell.exe -enc base64content')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'powershell.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: powershell.exe, Message: 'powershell.exe -enc base64content')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'powershell.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: powershell.exe, Message: 'powershell.exe -enc base64content')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'powershell.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'powershell.exe -enc base64content'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: pwsh.exe, Message: 'pwsh -Command Get-Process')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*netstat.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*netstat.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'pwsh.exe'
+DEBUG_EVAL:         Trying pattern: '*netstat.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: pwsh.exe, Message: 'pwsh -Command Get-Process')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*powershell.exe*', '*pwsh.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*powershell.exe*', '*pwsh.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'pwsh.exe'
+DEBUG_EVAL:         Trying pattern: '*powershell.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*pwsh.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection': False
+DEBUG_EVAL: All Selections Results: {'selection': False}
+DEBUG_EVAL: Main Condition String: 'selection'
+DEBUG_EVAL: Evaluated Condition String: 'False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+
+DEBUG_EVAL: Evaluating log_entry (Process: pwsh.exe, Message: 'pwsh -Command Get-Process')
+DEBUG_EVAL: Rule Detection Logic Keys: ['selection_wmic', 'selection_keywords', 'condition']
+DEBUG_EVAL:   Processing Selection: 'selection_wmic'
+DEBUG_EVAL:   Selection content: {'Image|equals': ['*wmic.exe*']}
+DEBUG_EVAL:     Field: 'Image' (mapped to 'process_name') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*wmic.exe*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>]
+DEBUG_EVAL:       Log Value for 'process_name': 'pwsh.exe'
+DEBUG_EVAL:         Trying pattern: '*wmic.exe*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'process_name'.
+DEBUG_EVAL:   Result for Selection 'selection_wmic': False
+DEBUG_EVAL:   Processing Selection: 'selection_keywords'
+DEBUG_EVAL:   Selection content: {'CommandLine|equals': ['*shadowcopy*', '*lsass.exe*', '*hash*']}
+DEBUG_EVAL:     Field: 'CommandLine' (mapped to 'message') | Operator: 'equals'
+DEBUG_EVAL:     Raw patterns: ['*shadowcopy*', '*lsass.exe*', '*hash*']
+DEBUG_EVAL:     Pattern types: [<class 'str'>, <class 'str'>, <class 'str'>]
+DEBUG_EVAL:       Log Value for 'message': 'pwsh -command get-process'
+DEBUG_EVAL:         Trying pattern: '*shadowcopy*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*lsass.exe*' with operator 'equals'
+DEBUG_EVAL:         Trying pattern: '*hash*' with operator 'equals'
+DEBUG_EVAL:       Pattern match FAILED for field 'message'.
+DEBUG_EVAL:   Result for Selection 'selection_keywords': False
+DEBUG_EVAL: All Selections Results: {'selection_wmic': False, 'selection_keywords': False}
+DEBUG_EVAL: Main Condition String: 'selection_wmic and selection_keywords'
+DEBUG_EVAL: Evaluated Condition String: 'False and False'
+DEBUG_EVAL: FINAL RULE EVALUATION RESULT: False
+
+Hunt complete. Found 0 potential findings.
+
+No threat hunt findings detected for the provided logs.

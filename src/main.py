@@ -14,8 +14,6 @@ if __name__ == "__main__":
     output_dir = "output/"
 
     # --- Ensure sample log file exists (for testing) ---
-    if not os.path.exists("data/logs"):
-        os.makedirs("data/logs")
     if not os.path.exists(sample_log_file):
         with open(sample_log_file, "w") as f:
             f.write("TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData\n")
@@ -23,11 +21,11 @@ if __name__ == "__main__":
             f.write("2024-06-17 10:05:00,HOST-02,admin,cmd.exe,4688,10.0.0.5,192.168.1.1,Account logon\n")
             f.write("2024-06-17 10:10:00,HOST-01,user1,calc.exe,4688,,,User opened calculator\n")
             f.write("2024-06-17 10:15:00,HOST-03,guest,explorer.exe,4624,172.16.0.1,172.16.0.10,Successful logon\n")
-            f.write("2024-06-17 10:20:00,HOST-01,user1,wmic.exe,4688,,,WMIC call to query process list\n") # This should trigger WMIC rule
-            f.write("2024-06-17 10:25:00,HOST-04,sysadmin,netstat.exe,4688,,,Network connection status\n") # This should trigger Netstat rule
-            f.write("2024-06-17 10:30:00,HOST-02,attacker,cmd.exe,4688,192.168.1.50,1.2.3.4,Suspicious network connection attempt\n")
-            f.write("2024-06-17 10:35:00,HOST-01,svc_account,services.exe,7036,,,Service started\n")
-        print(f"Generated a sample CSV log file at {sample_log_file}")
+            f.write("2024-06-17 10:20:00,HOST-01,user1,netstat.exe,4688,,,netstat -an\n")  # This should trigger netstat rule
+            f.write("2024-06-17 10:25:00,HOST-04,admin,wmic.exe,4688,,,wmic process list shadowcopy\n")  # This should trigger WMIC rule
+            f.write("2024-06-17 10:30:00,HOST-02,attacker,powershell.exe,4688,192.168.1.50,1.2.3.4,powershell.exe -enc base64content\n")  # Another PowerShell
+            f.write("2024-06-17 10:35:00,HOST-05,user2,pwsh.exe,4688,,,pwsh -Command Get-Process\n")  # PowerShell Core
+        print(f"Generated enhanced sample CSV log file at {sample_log_file}")
 
     # --- Ensure Sigma rules exist (for testing) ---
     os.makedirs(sigma_rules_dir, exist_ok=True)
