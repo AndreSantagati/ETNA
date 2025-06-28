@@ -35,8 +35,36 @@ class ThreatHuntingEngine:
         """
         Evaluates a simplified Sigma detection logic against a single log entry.
         """
-        selections = {}
+        # Fix operator class objects to strings
+        fixed_detection_logic = {}
+        for sel_name, sel_conditions_map in detection_logic.items():
+            if sel_name == 'condition':
+                fixed_detection_logic[sel_name] = sel_conditions_map
+                continue
+                
+            if isinstance(sel_conditions_map, dict):
+                fixed_conditions = {}
+                for field_key_operator, patterns in sel_conditions_map.items():
+                    # Convert SigmaModifier classes to simple strings
+                    if 'SigmaContainsModifier' in field_key_operator:
+                        new_key = field_key_operator.split('|')[0] + '|contains'
+                    elif 'SigmaStartswithModifier' in field_key_operator:
+                        new_key = field_key_operator.split('|')[0] + '|startswith'
+                    elif 'SigmaEndswithModifier' in field_key_operator:
+                        new_key = field_key_operator.split('|')[0] + '|endswith'
+                    else:
+                        new_key = field_key_operator
+                    
+                    fixed_conditions[new_key] = patterns
+                fixed_detection_logic[sel_name] = fixed_conditions
+            else:
+                fixed_detection_logic[sel_name] = sel_conditions_map
         
+        # Use the fixed detection logic
+        detection_logic = fixed_detection_logic
+        
+        # Continue with your existing code...
+        selections = {}
         main_condition_str = detection_logic.get('condition', 'False').lower() 
 
         print(f"\nDEBUG_EVAL: Evaluating log_entry (Process: {log_entry['process_name']}, Message: '{log_entry['message']}')")
@@ -98,25 +126,25 @@ class ThreatHuntingEngine:
                                     print(f"WARNING: Invalid regex pattern '{pat_lower}': {regex_err}")
                             elif pat_lower in log_value:
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         ✓ MATCH found with contains!")
+                                print(f"DEBUG_EVAL:         MATCH found with contains!")
                                 break
                         
                         elif operator_raw == 'startswith':
                             if log_value.startswith(pat_lower): 
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         ✓ MATCH found with startswith!")
+                                print(f"DEBUG_EVAL:         MATCH found with startswith!")
                                 break
 
                         elif operator_raw == 'endswith':
                             if log_value.endswith(pat_lower): 
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         ✓ MATCH found with endswith!")
+                                print(f"DEBUG_EVAL:         MATCH found with endswith!")
                                 break
 
                         elif operator_raw == 'equals':
                             if log_value == pat_lower: 
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         ✓ MATCH found with equals!")
+                                print(f"DEBUG_EVAL:         MATCH found with equals!")
                                 break
 
                     if not pattern_match_found_for_field:
@@ -175,18 +203,21 @@ class ThreatHuntingEngine:
                 rule_title = sigma_rule['title']
                 rule_detection_logic = sigma_rule['detection'] # This is now the correctly reconstructed dict from ttp_mapping
                 rule_tags = sigma_rule.get('tags', []) # This is now a list of SigmaRuleTag objects
-                rule_level = sigma_rule.get('level', 'informational')
-                
+                rule_level_obj = sigma_rule.get('level', 'informational')
+                rule_level = str(rule_level_obj).lower() if rule_level_obj else 'informational'
+
+                # Initialize MITRE technique ID as None            
                 mitre_tech_id = None
-                # CORRECTED: Access tag.name attribute for SigmaRuleTag objects
-                for tag_obj in rule_tags: # Iterate through SigmaRuleTag objects
-                    if isinstance(tag_obj, SigmaRuleTag) and hasattr(tag_obj, 'name'):
-                        tag_name_str = str(tag_obj.name) # Get the string name from the object
-                        if tag_name_str.startswith('attack.t'):
-                            parts = tag_name_str.split('.')
-                            if len(parts) >= 2 and parts[1].startswith('t'):
-                                mitre_tech_id = parts[1].upper() # T1059.001 -> T1059.001
-                                break
+                for tag_obj in rule_tags:
+                    # Convert tag to string and look for attack.t patterns
+                    tag_str = str(tag_obj).lower()
+                    if 'attack.t' in tag_str:
+                        # Extract technique ID using regex
+                        import re
+                        match = re.search(r'attack\.t(\d+(?:\.\d+)?)', tag_str)
+                        if match:
+                            mitre_tech_id = f"T{match.group(1)}"
+                            break
                     # Else, if it's not a SigmaRuleTag or has no name, skip it
                 
                 if self._evaluate_sigma_condition(log_entry, rule_detection_logic):

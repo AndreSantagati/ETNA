@@ -4,6 +4,7 @@ from src.hunting_engine import ThreatHuntingEngine
 from src.cti_integration import CTIManager
 from src.log_parser import NORMALIZED_LOG_SCHEMA
 from src.ttp_mapping import SigmaRuleLoader # IMPORT THE SigmaRuleLoader AGAIN
+from src.reporting import ThreatHuntingReporter
 import os
 import pandas as pd
 
@@ -16,15 +17,15 @@ if __name__ == "__main__":
     # --- Ensure sample log file exists (for testing) ---
     if not os.path.exists(sample_log_file):
         with open(sample_log_file, "w") as f:
-            f.write("TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData\n")
-            f.write("2024-06-17 10:00:00,HOST-01,user1,powershell.exe,4104,192.168.1.10,8.8.8.8,Process started\n")
-            f.write("2024-06-17 10:05:00,HOST-02,admin,cmd.exe,4688,10.0.0.5,192.168.1.1,Account logon\n")
-            f.write("2024-06-17 10:10:00,HOST-01,user1,calc.exe,4688,,,User opened calculator\n")
-            f.write("2024-06-17 10:15:00,HOST-03,guest,explorer.exe,4624,172.16.0.1,172.16.0.10,Successful logon\n")
-            f.write("2024-06-17 10:20:00,HOST-01,user1,netstat.exe,4688,,,netstat -an\n")  # This should trigger netstat rule
-            f.write("2024-06-17 10:25:00,HOST-04,admin,wmic.exe,4688,,,wmic process list shadowcopy\n")  # This should trigger WMIC rule
-            f.write("2024-06-17 10:30:00,HOST-02,attacker,powershell.exe,4688,192.168.1.50,1.2.3.4,powershell.exe -enc base64content\n")  # Another PowerShell
-            f.write("2024-06-17 10:35:00,HOST-05,user2,pwsh.exe,4688,,,pwsh -Command Get-Process\n")  # PowerShell Core
+            f.write("TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData,Action\n")  # Added Action
+            f.write("2024-06-17 10:00:00,HOST-01,user1,powershell.exe,4104,192.168.1.10,8.8.8.8,Process started,executed\n")
+            f.write("2024-06-17 10:05:00,HOST-02,admin,cmd.exe,4688,10.0.0.5,192.168.1.1,Account logon,logon\n")
+            f.write("2024-06-17 10:10:00,HOST-01,user1,calc.exe,4688,,,User opened calculator,executed\n")
+            f.write("2024-06-17 10:15:00,HOST-03,guest,explorer.exe,4624,172.16.0.1,172.16.0.10,Successful logon,logon\n")
+            f.write("2024-06-17 10:20:00,HOST-01,user1,netstat.exe,4688,,,netstat -an,executed\n")
+            f.write("2024-06-17 10:25:00,HOST-04,admin,wmic.exe,4688,,,wmic process list shadowcopy,executed\n")
+            f.write("2024-06-17 10:30:00,HOST-02,attacker,powershell.exe,4688,192.168.1.50,1.2.3.4,powershell.exe -enc base64content,executed\n")
+            f.write("2024-06-17 10:35:00,HOST-05,user2,pwsh.exe,4688,,,pwsh -Command Get-Process,executed\n")
         print(f"Generated enhanced sample CSV log file at {sample_log_file}")
 
     # --- Ensure Sigma rules exist (for testing) ---
@@ -135,5 +136,22 @@ level: low
         os.makedirs(output_dir, exist_ok=True)
         findings.to_csv(os.path.join(output_dir, "threat_hunt_findings.csv"), index=False)
         print(f"\nFindings saved to {os.path.join(output_dir, 'threat_hunt_findings.csv')}")
+    else:
+        print("\nNo threat hunt findings detected for the provided logs.")
+    
+    # --- Reporting ---
+    if not findings.empty or True:  # Generate reports even if no findings for demo
+        print("\n" + "="*60)
+        print("🔄 GENERATING COMPREHENSIVE THREAT HUNTING REPORTS")
+        print("="*60)
+        
+        reporter = ThreatHuntingReporter(output_dir=output_dir)
+        summary = reporter.generate_complete_report_suite(findings)
+        
+        print("\n📊 EXECUTIVE SUMMARY:")
+        print(f"   • Total Findings: {summary.get('total_findings', 0)}")
+        print(f"   • Risk Assessment: {summary.get('risk_assessment', 'N/A')}")
+        print(f"   • Affected Hosts: {summary.get('affected_infrastructure', {}).get('hosts', 0)}")
+        print(f"   • MITRE Techniques: {summary.get('unique_techniques', 0)}")
     else:
         print("\nNo threat hunt findings detected for the provided logs.")

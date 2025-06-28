@@ -62,70 +62,76 @@ class SigmaRuleLoader:
                 if isinstance(rule.detection, SigmaDetections) and rule.detection.detections:
                     for sel_name, sel_obj in rule.detection.detections.items():
                         selection_conditions_for_field = {}
-                        
+                            
                         if isinstance(sel_obj, SigmaDetection) and sel_obj.detection_items:
                             for detection_item in sel_obj.detection_items:
                                 if isinstance(detection_item, SigmaDetectionItem):
-                                    field_key = detection_item.field # e.g., 'Image'
-                                    operator = detection_item.operator # e.g., 'contains', 'endswith', or None
-                                    value = detection_item.value # This can be list of SigmaString/tuple/etc.
+                                    field_key = detection_item.field  # e.g., 'Image'
+                                        
+                                    # Get the operator from the original detection item
+                                    # The operator is embedded in the field name in Sigma YAML
+                                    # We need to extract it from the original rule field specification
+                                    original_operator = None
+                                    for original_field in sel_obj.detection_items:
+                                        if hasattr(original_field, 'field') and original_field.field == field_key:
+                                            # Check if this detection item has modifiers
+                                            if hasattr(original_field, 'modifiers') and original_field.modifiers:
+                                                # The modifier contains the operator (contains, endswith, etc.)
+                                                original_operator = original_field.modifiers[0] if original_field.modifiers else None
+                                            break
+                                        
+                                    # If no operator found, try to get it from field_key if it contains pipe
+                                    if not original_operator and '|' in field_key:
+                                        parts = field_key.split('|')
+                                        field_key = parts[0]  # Remove operator from field name
+                                        original_operator = parts[1] if len(parts) > 1 else 'equals'
+                                    elif not original_operator:
+                                        original_operator = 'equals'  # Default
+                                        
+                                    value = detection_item.value  # This can be list of SigmaString/tuple/etc.
 
-                                    # --- NEW: Reconstruct Pattern String and Operator ---
-                                    
-                                    # Determine the operator to use in the combined key
-                                    # If detection_item.operator is None, it defaults to 'equals' in Sigma context
-                                    # However, our sample rules explicitly use 'Image|contains' so operator should be a string.
-                                    # If operator is still None/empty for rules like 'Image|contains', it means PySigma's parsing of that is implicit.
-                                    # Let's map implicitly to 'contains' for keywords if operator is missing and it's a string value.
-                                    effective_operator = operator if operator else 'equals'
-                                    if not effective_operator and isinstance(value, (str, list)): # Fallback for contains if operator is absent for literal strings
-                                        effective_operator = 'contains' 
+                                    # Create the combined field|operator key
+                                    combined_field_key = f"{field_key}|{original_operator}"
 
-                                    # Reconstruct the "field|operator" key for hunting_engine
-                                    combined_field_key = f"{field_key}|{effective_operator}" # Always include operator
-
-                                    # Extract raw string value from various PySigma value types
+                                    # Process the values correctly
                                     processed_values = []
                                     values_to_process = value if isinstance(value, list) else [value]
-
+                                        
                                     for val_obj in values_to_process:
                                         if isinstance(val_obj, SigmaString):
-                                            # SigmaString objects contain the actual string with wildcards
-                                            pattern_str = str(val_obj)
-                                            processed_values.append(pattern_str)
-                                        elif isinstance(val_obj, SigmaRegularExpression):
-                                            processed_values.append(str(val_obj))
+                                            # For SigmaString, get the plain string without adding wildcards
+                                            # The operator will handle the matching logic
+                                            plain_string = str(val_obj).strip('*')  # Remove any existing wildcards
+                                            processed_values.append(plain_string)
                                         elif isinstance(val_obj, tuple):
                                             # Handle tuples like (<SpecialChars.WILDCARD_MULTI: 1>, 'netstat.exe')
                                             reconstructed_val = ""
                                             for part in val_obj:
-                                                if hasattr(part, 'name') and 'WILDCARD' in str(part.name):
-                                                    reconstructed_val += "*"
-                                                elif isinstance(part, str):
+                                                if isinstance(part, str):
                                                     reconstructed_val += part
-                                                elif str(part) == "1":  # Skip numeric wildcard indicators
-                                                    pass
-                                            processed_values.append(reconstructed_val)
-                                        elif hasattr(val_obj, '__iter__') and not isinstance(val_obj, str):
-                                            # Handle other iterable objects
-                                            for sub_val in val_obj:
-                                                if isinstance(sub_val, str):
-                                                    processed_values.append(sub_val)
+                                                # Skip wildcard indicators - the operator will handle matching
+                                            if reconstructed_val:
+                                                processed_values.append(reconstructed_val)
                                         else:
-                                            # For any other type, convert to string and try to extract useful parts
+                                            # For any other type, convert to string and clean up
                                             str_val = str(val_obj)
-                                            # Try to extract strings from representations like "('netstat.exe',)"
+                                            # Try to extract the actual string value
                                             import re
                                             matches = re.findall(r"'([^']+)'", str_val)
                                             if matches:
-                                                for match in matches:
-                                                    processed_values.append(match)
+                                                processed_values.extend(matches)
                                             else:
-                                                processed_values.append(str_val)
+                                                # Clean up the string and remove quotes/wildcards
+                                                clean_val = str_val.strip("'\"*")
+                                                if clean_val and clean_val not in ['1', 'True', 'False']:
+                                                    processed_values.append(clean_val)
 
-                                    selection_conditions_for_field[combined_field_key] = processed_values
+                                    if processed_values:  # Only add if we have valid values
+                                        selection_conditions_for_field[combined_field_key] = processed_values
+                            
+                        if selection_conditions_for_field:  # Only add non-empty selections
                             transformed_detection_logic[sel_name] = selection_conditions_for_field
-                    
+                        
                     if rule.detection.condition:
                         transformed_detection_logic['condition'] = " ".join(rule.detection.condition)
                 else:

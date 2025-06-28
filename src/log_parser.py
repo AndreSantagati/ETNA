@@ -82,6 +82,7 @@ class CsvLogParser(BaseLogParser):
                 'SourceIpAddress': 'source_ip',
                 'DestinationIpAddress': 'destination_ip',
                 'EventData': 'message', # Generic message field
+                'Action': 'action',
             }
             
             self.normalized_df = self._normalize_columns(df, column_map)
