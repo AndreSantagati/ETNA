@@ -1,0 +1,43 @@
+{
+  "generated_at": "2025-06-28T19:32:27.678237",
+  "total_findings": 5,
+  "unique_techniques": 3,
+  "risk_assessment": "HIGH",
+  "risk_distribution": {
+    "high": 1,
+    "medium": 3,
+    "low": 1
+  },
+  "affected_infrastructure": {
+    "hosts": 4,
+    "users": 4,
+    "total_events": 5
+  },
+  "attack_patterns": {
+    "top_techniques": {
+      "PowerShell": 3,
+      "System Network Connections Discovery": 1,
+      "OS Credential Dumping": 1
+    },
+    "attack_stages": {
+      "Execution": 3,
+      "Discovery": 1,
+      "Credential Access": 1
+    }
+  },
+  "timeline": {
+    "earliest_detection": "2024-06-17 10:00:00",
+    "latest_detection": "2024-06-17 10:35:00",
+    "duration": "0 days 00:35:00"
+  },
+  "recommendations": [
+    "Implement PowerShell logging and monitoring (Event ID 4104)",
+    "Consider PowerShell Constrained Language Mode for non-admin users",
+    "Review privileged account security and implement credential guard",
+    "Audit recent password changes and suspicious logon activity",
+    "Monitor network scanning and reconnaissance activities",
+    "Implement network segmentation to limit lateral movement",
+    "Immediate investigation required for 1 high-risk findings",
+    "Consider isolating affected systems pending investigation"
+  ]
+}

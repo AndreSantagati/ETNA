@@ -204,7 +204,7 @@ class ThreatHuntingReporter:
         viz_path = os.path.join(self.output_dir, 'threat_landscape.png')
         plt.savefig(viz_path, dpi=300, bbox_inches='tight')
         plt.close()
-        print(f"✅ Threat landscape visualization saved to {viz_path}")
+        print(f"Threat landscape visualization saved to {viz_path}")
     
     def generate_technical_report(self, findings_df: pd.DataFrame, summary: Dict):
         """Generate detailed technical report for security analysts."""
@@ -246,13 +246,13 @@ class ThreatHuntingReporter:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>🛡️ Automated Threat Hunting Report</h1>
+                    <h1>Automated Threat Hunting Report</h1>
                     <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
                     <p>Analysis Period: {summary.get('timeline', {}).get('earliest_detection', 'N/A')} to {summary.get('timeline', {}).get('latest_detection', 'N/A')}</p>
                 </div>
                 
                 <div class="executive-summary">
-                    <h2>📊 Executive Summary</h2>
+                    <h2>Executive Summary</h2>
                     <div>
                         <div class="stat-box">
                             <div class="stat-number">{summary.get('total_findings', 0)}</div>
@@ -284,7 +284,7 @@ class ThreatHuntingReporter:
         if recommendations:
             html_content += """
                 <div class="recommendations">
-                    <h2>🎯 Recommendations</h2>
+                    <h2>Recommendations</h2>
                     <ul>
             """
             for rec in recommendations:
@@ -293,7 +293,7 @@ class ThreatHuntingReporter:
         
         # Add detailed findings
         if not findings_df.empty:
-            html_content += "<h2>🔍 Detailed Findings</h2>"
+            html_content += "<h2>Detailed Findings</h2>"
             
             for _, finding in findings_df.iterrows():
                 risk_class = "risk-low"
@@ -305,7 +305,7 @@ class ThreatHuntingReporter:
                 html_content += f"""
                 <div class="finding-card {risk_class}">
                     <h3>{finding['hunting_rule_title']}</h3>
-                    <p class="timestamp">🕒 {finding['timestamp']} | 🖥️ {finding['hostname']} | 👤 {finding['username']}</p>
+                    <p class="timestamp">{finding['timestamp']} |  {finding['hostname']} |  {finding['username']}</p>
                     <p><strong>Process:</strong> {finding['process_name']}</p>
                     <p><strong>Message:</strong> {finding['message']}</p>
                     <p><strong>Risk Score:</strong> {finding['risk_score']}/100</p>
@@ -316,7 +316,7 @@ class ThreatHuntingReporter:
         
         html_content += """
                 <div style="margin-top: 40px;">
-                    <h2>📈 Threat Landscape Analysis</h2>
+                    <h2>Threat Landscape Analysis</h2>
                     <img src="threat_landscape.png" alt="Threat Analysis Dashboard" style="max-width: 100%; border: 1px solid #ddd; border-radius: 5px;">
                 </div>
                 
@@ -331,7 +331,7 @@ class ThreatHuntingReporter:
         report_path = os.path.join(self.output_dir, 'threat_hunting_report.html')
         with open(report_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
-        print(f"✅ Technical report saved to {report_path}")
+        print(f"Technical report saved to {report_path}")
     
     def export_for_siem_integration(self, findings_df: pd.DataFrame):
         """Export findings in various SIEM-compatible formats."""
@@ -369,7 +369,7 @@ class ThreatHuntingReporter:
         json_path = os.path.join(self.output_dir, 'siem_integration.json')
         with open(json_path, 'w') as f:
             json.dump(json_export, f, indent=2, default=str)
-        print(f"✅ SIEM JSON export saved to {json_path}")
+        print(f"SIEM JSON export saved to {json_path}")
         
         # CEF format for ArcSight/QRadar
         cef_path = os.path.join(self.output_dir, 'siem_integration.cef')
@@ -391,7 +391,7 @@ class ThreatHuntingReporter:
                     f"msg={finding['message']}\n"
                 )
                 f.write(cef_line)
-        print(f"✅ CEF format export saved to {cef_path}")
+        print(f"CEF format export saved to {cef_path}")
     
     def generate_ioc_extraction(self, findings_df: pd.DataFrame):
         """Extract and analyze Indicators of Compromise (IOCs)."""
@@ -422,13 +422,13 @@ class ThreatHuntingReporter:
         ioc_path = os.path.join(self.output_dir, 'extracted_iocs.json')
         with open(ioc_path, 'w') as f:
             json.dump(iocs, f, indent=2, default=str)
-        print(f"✅ IOC extraction saved to {ioc_path}")
+        print(f"IOC extraction saved to {ioc_path}")
         
         return iocs
     
     def generate_complete_report_suite(self, findings_df: pd.DataFrame):
         """Generate the complete report suite for threat hunting analysis."""
-        print("🔄 Generating comprehensive threat hunting reports...")
+        print("Generating comprehensive threat hunting reports...")
         
         # Generate executive summary
         summary = self.generate_executive_summary(findings_df)
@@ -437,7 +437,7 @@ class ThreatHuntingReporter:
         summary_path = os.path.join(self.output_dir, 'executive_summary.json')
         with open(summary_path, 'w') as f:
             json.dump(summary, f, indent=2, default=str)
-        print(f"✅ Executive summary saved to {summary_path}")
+        print(f"Executive summary saved to {summary_path}")
         
         # Generate visualizations
         self.create_threat_landscape_visualization(findings_df)
@@ -451,8 +451,8 @@ class ThreatHuntingReporter:
         # Extract IOCs
         self.generate_ioc_extraction(findings_df)
         
-        print(f"\n🎉 Complete report suite generated in: {self.output_dir}")
-        print("📂 Generated files:")
+        print(f"\nComplete report suite generated in: {self.output_dir}")
+        print("Generated files:")
         print("   • executive_summary.json - Management overview")
         print("   • threat_hunting_report.html - Technical analysis")
         print("   • threat_landscape.png - Visual dashboard")

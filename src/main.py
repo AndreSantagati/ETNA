@@ -142,13 +142,13 @@ level: low
     # --- Reporting ---
     if not findings.empty or True:  # Generate reports even if no findings for demo
         print("\n" + "="*60)
-        print("🔄 GENERATING COMPREHENSIVE THREAT HUNTING REPORTS")
+        print("GENERATING COMPREHENSIVE THREAT HUNTING REPORTS")
         print("="*60)
         
         reporter = ThreatHuntingReporter(output_dir=output_dir)
         summary = reporter.generate_complete_report_suite(findings)
         
-        print("\n📊 EXECUTIVE SUMMARY:")
+        print("\nEXECUTIVE SUMMARY:")
         print(f"   • Total Findings: {summary.get('total_findings', 0)}")
         print(f"   • Risk Assessment: {summary.get('risk_assessment', 'N/A')}")
         print(f"   • Affected Hosts: {summary.get('affected_infrastructure', {}).get('hosts', 0)}")

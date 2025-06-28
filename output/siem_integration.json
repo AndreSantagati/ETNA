@@ -1,0 +1,107 @@
+[
+  {
+    "timestamp": "2024-06-17 10:00:00",
+    "source": "threat_hunting_platform",
+    "event_type": "threat_detection",
+    "severity": "medium",
+    "risk_score": 70,
+    "hostname": "HOST-01",
+    "username": "user1",
+    "process_name": "powershell.exe",
+    "rule_id": "d76a74b1-e2c8-4a92-b437-02b4d96a74b1",
+    "rule_title": "PowerShell Process Creation Keywords",
+    "mitre_technique": {
+      "id": "T1059.001",
+      "name": "PowerShell",
+      "url": "https://attack.mitre.org/techniques/T1059/001"
+    },
+    "raw_message": "Process started",
+    "source_ip": "192.168.1.10",
+    "destination_ip": "8.8.8.8",
+    "action": "executed"
+  },
+  {
+    "timestamp": "2024-06-17 10:20:00",
+    "source": "threat_hunting_platform",
+    "event_type": "threat_detection",
+    "severity": "low",
+    "risk_score": 40,
+    "hostname": "HOST-01",
+    "username": "user1",
+    "process_name": "netstat.exe",
+    "rule_id": "e2b3c4d5-f6a7-8b9c-0d1e-2f3a4b5c6d7e",
+    "rule_title": "Network Connections Discovery via Netstat",
+    "mitre_technique": {
+      "id": "T1049",
+      "name": "System Network Connections Discovery",
+      "url": "https://attack.mitre.org/techniques/T1049"
+    },
+    "raw_message": "netstat -an",
+    "source_ip": "nan",
+    "destination_ip": "nan",
+    "action": "executed"
+  },
+  {
+    "timestamp": "2024-06-17 10:25:00",
+    "source": "threat_hunting_platform",
+    "event_type": "threat_detection",
+    "severity": "high",
+    "risk_score": 90,
+    "hostname": "HOST-04",
+    "username": "admin",
+    "process_name": "wmic.exe",
+    "rule_id": "d1c9b2f3-e4d5-4c67-a89b-01c2d3e4f5a6",
+    "rule_title": "WMIC usage for Credential Access",
+    "mitre_technique": {
+      "id": "T1003",
+      "name": "OS Credential Dumping",
+      "url": "https://attack.mitre.org/techniques/T1003"
+    },
+    "raw_message": "wmic process list shadowcopy",
+    "source_ip": "nan",
+    "destination_ip": "nan",
+    "action": "executed"
+  },
+  {
+    "timestamp": "2024-06-17 10:30:00",
+    "source": "threat_hunting_platform",
+    "event_type": "threat_detection",
+    "severity": "medium",
+    "risk_score": 70,
+    "hostname": "HOST-02",
+    "username": "attacker",
+    "process_name": "powershell.exe",
+    "rule_id": "d76a74b1-e2c8-4a92-b437-02b4d96a74b1",
+    "rule_title": "PowerShell Process Creation Keywords",
+    "mitre_technique": {
+      "id": "T1059.001",
+      "name": "PowerShell",
+      "url": "https://attack.mitre.org/techniques/T1059/001"
+    },
+    "raw_message": "powershell.exe -enc base64content",
+    "source_ip": "192.168.1.50",
+    "destination_ip": "1.2.3.4",
+    "action": "executed"
+  },
+  {
+    "timestamp": "2024-06-17 10:35:00",
+    "source": "threat_hunting_platform",
+    "event_type": "threat_detection",
+    "severity": "medium",
+    "risk_score": 70,
+    "hostname": "HOST-05",
+    "username": "user2",
+    "process_name": "pwsh.exe",
+    "rule_id": "d76a74b1-e2c8-4a92-b437-02b4d96a74b1",
+    "rule_title": "PowerShell Process Creation Keywords",
+    "mitre_technique": {
+      "id": "T1059.001",
+      "name": "PowerShell",
+      "url": "https://attack.mitre.org/techniques/T1059/001"
+    },
+    "raw_message": "pwsh -Command Get-Process",
+    "source_ip": "nan",
+    "destination_ip": "nan",
+    "action": "executed"
+  }
+]
