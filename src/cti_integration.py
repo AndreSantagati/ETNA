@@ -51,13 +51,14 @@ class CTIManager:
         including their IDs, names, descriptions, tactics, and mitigations.
         Includes extensive debugging.
         """
+
         if not self.mitre_data:
             print("ERROR: MITRE ATT&CK data not loaded or is empty. Cannot parse techniques.")
             return pd.DataFrame(columns=['id', 'name', 'tactics', 'description', 'url']) # Return empty with columns
 
         techniques_list = []
         total_objects_count = len(self.mitre_data.get('objects', []))
-        print(f"DEBUG: Total objects found in MITRE data: {total_objects_count}")
+        #print(f"DEBUG: Total objects found in MITRE data: {total_objects_count}")
 
         parsed_technique_count = 0
         object_types_found = {} # Keep track of object types found for debugging
@@ -95,8 +96,8 @@ class CTIManager:
                     'url': f"https://attack.mitre.org/techniques/{external_id.replace('.', '/')}" if external_id and external_id.startswith('T') else None,
                 })
         
-        print(f"DEBUG: Found {parsed_technique_count} 'attack-pattern' objects during parsing.")
-        print(f"DEBUG: Types of objects found in MITRE data: {object_types_found}")
+        #print(f"DEBUG: Found {parsed_technique_count} 'attack-pattern' objects during parsing.")
+        #print(f"DEBUG: Types of objects found in MITRE data: {object_types_found}")
 
         if not techniques_list:
             print("WARNING: techniques_list is empty after parsing. This indicates no 'attack-pattern' objects were found or processed successfully.")
