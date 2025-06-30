@@ -4,6 +4,9 @@ import pandas as pd
 import os
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Union
+import time 
+from functools import wraps
+import json
 
 # Define a standard schema for normalized logs
 # This helps ensure consistency across different log sources
@@ -96,17 +99,13 @@ class CsvLogParser(BaseLogParser):
 
 # --- Log Parser Factory (for easily getting the right parser) ---
 class LogParserFactory:
-    """Factory to get the appropriate log parser based on file extension."""
     @staticmethod
     def get_parser(log_path: str) -> BaseLogParser:
         file_extension = os.path.splitext(log_path)[1].lower()
         if file_extension == '.csv':
             return CsvLogParser(log_path)
-        # Add more parser types here as you implement them
-        # elif file_extension == '.json':
-        #     return JsonLogParser(log_path)
-        # elif file_extension == '.evtx':
-        #     return EvtxLogParser(log_path)
+        elif file_extension in ['.json', '.jsonl']:
+            return JsonLogParser(log_path)
         else:
             raise ValueError(f"Unsupported log file type: {file_extension}")
 
@@ -144,3 +143,34 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"An error occurred during testing: {e}")
+
+
+class JsonLogParser(BaseLogParser):
+    def parse(self) -> pd.DataFrame:
+        """Parse JSON log files (e.g., from Elastic, Splunk)."""
+        try:
+            with open(self.log_path, 'r') as f:
+                if self.log_path.endswith('.jsonl'):
+                    logs = [json.loads(line) for line in f]
+                else:
+                    logs = json.load(f)
+                    if not isinstance(logs, list):
+                        logs = [logs]
+            
+            df = pd.DataFrame(logs)
+            column_map = {
+                '@timestamp': 'timestamp',
+                'host': 'hostname',
+                'user': 'username',
+                'process': 'process_name',
+                'event_id': 'event_id',
+                'message': 'message',
+                'src_ip': 'source_ip',
+                'dst_ip': 'destination_ip'
+            }
+            
+            return self._normalize_columns(df, column_map)
+            
+        except Exception as e:
+            print(f"Error parsing JSON file {self.log_path}: {e}")
+            return pd.DataFrame(columns=NORMALIZED_LOG_SCHEMA.keys())

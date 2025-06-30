@@ -5,15 +5,13 @@ import os
 import re
 
 from src.log_parser import LogParserFactory, NORMALIZED_LOG_SCHEMA
-from src.cti_integration import CTIManager
+from src.cti_integration import EnhancedCTIManager
 from src.ttp_mapping import SigmaRuleLoader
 from typing import Dict, List, Any
 from sigma.rule import SigmaRuleTag 
-# No longer explicitly importing SigmaString etc. here, as ttp_mapping should have converted them to strings
-
 
 class ThreatHuntingEngine:
-    def __init__(self, cti_manager: CTIManager, sigma_rule_loader: SigmaRuleLoader):
+    def __init__(self, cti_manager: EnhancedCTIManager, sigma_rule_loader: SigmaRuleLoader):
         self.cti_manager = cti_manager
         self.sigma_rule_loader = sigma_rule_loader
         
@@ -29,7 +27,6 @@ class ThreatHuntingEngine:
             print("WARNING: No Sigma rules loaded. Hunting engine will not perform rule-based detections.")
         else:
             print(f"Hunting Engine loaded {len(self.sigma_rules)} Sigma rules.")
-
 
     def _evaluate_sigma_condition(self, log_entry: pd.Series, detection_logic: Dict[str, Any]) -> bool:
         """
@@ -62,21 +59,13 @@ class ThreatHuntingEngine:
         
         # Use the fixed detection logic
         detection_logic = fixed_detection_logic
-        
-        # Continue with your existing code...
         selections = {}
         main_condition_str = detection_logic.get('condition', 'False').lower() 
-
-        print(f"\nDEBUG_EVAL: Evaluating log_entry (Process: {log_entry['process_name']}, Message: '{log_entry['message']}')")
-        print(f"DEBUG_EVAL: Rule Detection Logic Keys: {list(detection_logic.keys())}")
 
         for sel_name, sel_conditions_map in detection_logic.items():
             if sel_name == 'condition': 
                 continue
 
-            print(f"DEBUG_EVAL:   Processing Selection: '{sel_name}'")
-            print(f"DEBUG_EVAL:   Selection content: {sel_conditions_map}")
-            
             selection_match_overall = True 
             
             if isinstance(sel_conditions_map, dict):
@@ -92,17 +81,11 @@ class ThreatHuntingEngine:
                     elif field_name_raw.lower() == 'commandline':
                         log_field_name = 'message'
 
-                    print(f"DEBUG_EVAL:     Field: '{field_name_raw}' (mapped to '{log_field_name}') | Operator: '{operator_raw}'")
-                    print(f"DEBUG_EVAL:     Raw patterns: {patterns}")
-                    print(f"DEBUG_EVAL:     Pattern types: {[type(p) for p in patterns] if isinstance(patterns, list) else type(patterns)}")
-
                     if log_field_name not in log_entry.index or pd.isna(log_entry[log_field_name]):
-                        print(f"DEBUG_EVAL:       Field '{log_field_name}' not in log entry or is NaN. Selection FAILED.")
                         selection_match_overall = False 
                         break
 
                     log_value = str(log_entry[log_field_name]).lower()
-                    print(f"DEBUG_EVAL:       Log Value for '{log_field_name}': '{log_value}'")
 
                     if not isinstance(patterns, list): 
                         patterns = [patterns] 
@@ -111,8 +94,6 @@ class ThreatHuntingEngine:
                     for pattern_str_val in patterns:
                         pat_lower = str(pattern_str_val).lower()
                         
-                        print(f"DEBUG_EVAL:         Trying pattern: '{pat_lower}' with operator '{operator_raw}'")
-                        
                         # Apply operator logic
                         if operator_raw == 'contains':
                             if '*' in pat_lower:
@@ -120,62 +101,46 @@ class ThreatHuntingEngine:
                                     pat_regex = re.escape(pat_lower).replace(r'\*', '.*')
                                     if re.search(pat_regex, log_value):
                                         pattern_match_found_for_field = True
-                                        print(f"DEBUG_EVAL:         ✓ MATCH found with regex pattern!")
                                         break
-                                except re.error as regex_err:
-                                    print(f"WARNING: Invalid regex pattern '{pat_lower}': {regex_err}")
+                                except re.error:
+                                    pass
                             elif pat_lower in log_value:
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         MATCH found with contains!")
                                 break
                         
                         elif operator_raw == 'startswith':
                             if log_value.startswith(pat_lower): 
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         MATCH found with startswith!")
                                 break
 
                         elif operator_raw == 'endswith':
                             if log_value.endswith(pat_lower): 
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         MATCH found with endswith!")
                                 break
 
                         elif operator_raw == 'equals':
                             if log_value == pat_lower: 
                                 pattern_match_found_for_field = True
-                                print(f"DEBUG_EVAL:         MATCH found with equals!")
                                 break
 
                     if not pattern_match_found_for_field:
-                        print(f"DEBUG_EVAL:       Pattern match FAILED for field '{log_field_name}'.")
                         selection_match_overall = False
                         break
-                    else:
-                        print(f"DEBUG_EVAL:       Pattern match SUCCESS for field '{log_field_name}'.")
 
             else:
-                print(f"DEBUG_EVAL:   Selection '{sel_name}' has invalid conditions map. Selection FAILED.")
                 selection_match_overall = False 
 
             selections[sel_name] = selection_match_overall 
-            print(f"DEBUG_EVAL:   Result for Selection '{sel_name}': {selection_match_overall}")
 
         # Evaluate the main condition string
-        print(f"DEBUG_EVAL: All Selections Results: {selections}")
-        print(f"DEBUG_EVAL: Main Condition String: '{main_condition_str}'")
-        
         try:
             evaluated_condition = main_condition_str
             for sel_name, sel_val in selections.items():
                 evaluated_condition = re.sub(r'\b' + re.escape(sel_name) + r'\b', str(sel_val), evaluated_condition)
 
-            print(f"DEBUG_EVAL: Evaluated Condition String: '{evaluated_condition}'")
             final_result = eval(evaluated_condition)
-            print(f"DEBUG_EVAL: FINAL RULE EVALUATION RESULT: {final_result}\n")
             return final_result
-        except Exception as e:
-            print(f"WARNING: Could not evaluate Sigma rule condition expression '{main_condition_str}': {e}")
+        except Exception:
             return False
 
     def _apply_hunting_rules(self, logs_df: pd.DataFrame) -> pd.DataFrame:
@@ -185,7 +150,6 @@ class ThreatHuntingEngine:
         hunting_findings = []
 
         # Ensure all columns potentially needed by Sigma rules are strings and filled
-        # Map Sigma 'Image' to 'process_name' and 'CommandLine' to 'message' based on our sample logs
         for col in ['process_name', 'event_id', 'message', 'source_ip', 'destination_ip', 'hostname', 'username']:
             if col not in logs_df.columns:
                 logs_df[col] = None
@@ -201,8 +165,8 @@ class ThreatHuntingEngine:
             for sigma_rule in self.sigma_rules:
                 rule_id = sigma_rule['id']
                 rule_title = sigma_rule['title']
-                rule_detection_logic = sigma_rule['detection'] # This is now the correctly reconstructed dict from ttp_mapping
-                rule_tags = sigma_rule.get('tags', []) # This is now a list of SigmaRuleTag objects
+                rule_detection_logic = sigma_rule['detection']
+                rule_tags = sigma_rule.get('tags', [])
                 rule_level_obj = sigma_rule.get('level', 'informational')
                 rule_level = str(rule_level_obj).lower() if rule_level_obj else 'informational'
 
@@ -213,12 +177,10 @@ class ThreatHuntingEngine:
                     tag_str = str(tag_obj).lower()
                     if 'attack.t' in tag_str:
                         # Extract technique ID using regex
-                        import re
                         match = re.search(r'attack\.t(\d+(?:\.\d+)?)', tag_str)
                         if match:
                             mitre_tech_id = f"T{match.group(1)}"
                             break
-                    # Else, if it's not a SigmaRuleTag or has no name, skip it
                 
                 if self._evaluate_sigma_condition(log_entry, rule_detection_logic):
                     # Found a match!
@@ -239,12 +201,17 @@ class ThreatHuntingEngine:
                         if tech_details:
                             finding['mitre_technique_name'] = tech_details['name']
                             finding['mitre_technique_url'] = tech_details['url']
-                            # Simple risk scoring based on Sigma level (can be refined)
-                            if rule_level == 'critical': finding['risk_score'] = 100
-                            elif rule_level == 'high': finding['risk_score'] = 90
-                            elif rule_level == 'medium': finding['risk_score'] = 70
-                            elif rule_level == 'low': finding['risk_score'] = 40
-                            else: finding['risk_score'] = 20
+                            # Simple risk scoring based on Sigma level
+                            if rule_level == 'critical': 
+                                finding['risk_score'] = 100
+                            elif rule_level == 'high': 
+                                finding['risk_score'] = 90
+                            elif rule_level == 'medium': 
+                                finding['risk_score'] = 70
+                            elif rule_level == 'low': 
+                                finding['risk_score'] = 40
+                            else: 
+                                finding['risk_score'] = 20
 
                     hunting_findings.append(finding)
         

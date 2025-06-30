@@ -1,0 +1,31 @@
+{
+  "mitre_update_interval": 24,
+  "cache_directory": "data/cti/",
+  "max_cache_age": 24,
+  "ioc_feeds": [
+    {
+      "name": "feodotracker_ips",
+      "url": "https://feodotracker.abuse.ch/downloads/ipblocklist.txt",
+      "feed_type": "ip",
+      "update_interval": 6,
+      "enabled": true,
+      "headers": null
+    },
+    {
+      "name": "urlhaus_domains", 
+      "url": "https://urlhaus.abuse.ch/downloads/text_online/",
+      "feed_type": "domain",
+      "update_interval": 12,
+      "enabled": true,
+      "headers": null
+    },
+    {
+      "name": "threatfox_iocs",
+      "url": "https://threatfox.abuse.ch/export/json/recent/",
+      "feed_type": "mixed",
+      "update_interval": 4,
+      "enabled": true,
+      "headers": {"User-Agent": "ThreatHunting-Platform/1.0"}
+    }
+  ]
+}

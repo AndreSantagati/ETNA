@@ -37,81 +37,37 @@
             <div class="container">
                 <div class="header">
                     <h1>Automated Threat Hunting Report</h1>
-                    <p>Generated: 2025-06-30 16:07:46 UTC</p>
-                    <p>Analysis Period: 2024-12-30 09:15:00 to 2024-12-30 09:20:00</p>
+                    <p>Generated: 2025-06-30 16:07:36 UTC</p>
+                    <p>Analysis Period: N/A to N/A</p>
                 </div>
                 
                 <div class="executive-summary">
                     <h2>Executive Summary</h2>
                     <div>
                         <div class="stat-box">
-                            <div class="stat-number">4</div>
+                            <div class="stat-number">0</div>
                             <div class="stat-label">Total Findings</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-number">3</div>
+                            <div class="stat-number">0</div>
                             <div class="stat-label">MITRE Techniques</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-number">2</div>
+                            <div class="stat-number">0</div>
                             <div class="stat-label">Affected Hosts</div>
                         </div>
                         <div class="stat-box">
-                            <div class="stat-number">HIGH</div>
+                            <div class="stat-number">LOW</div>
                             <div class="stat-label">Risk Level</div>
                         </div>
                     </div>
                     
                     <h3>Risk Distribution</h3>
-                    <p>High Risk: 1 | 
-                       Medium Risk: 2 | 
-                       Low Risk: 1</p>
+                    <p>High Risk: 0 | 
+                       Medium Risk: 0 | 
+                       Low Risk: 0</p>
                 </div>
         
-                <div class="recommendations">
-                    <h2>Recommendations</h2>
-                    <ul>
-            <li>Implement PowerShell logging and monitoring (Event ID 4104)</li><li>Consider PowerShell Constrained Language Mode for non-admin users</li><li>Review privileged account security and implement credential guard</li><li>Audit recent password changes and suspicious logon activity</li><li>Monitor network scanning and reconnaissance activities</li><li>Implement network segmentation to limit lateral movement</li><li>Immediate investigation required for 1 high-risk findings</li><li>Consider isolating affected systems pending investigation</li></ul></div><h2>Detailed Findings</h2>
-                <div class="finding-card risk-medium">
-                    <h3>PowerShell Process Creation Keywords</h3>
-                    <p class="timestamp">2024-12-30 09:15:00 |  DC-01 |  admin</p>
-                    <p><strong>Process:</strong> powershell.exe</p>
-                    <p><strong>Message:</strong> powershell -ExecutionPolicy Bypass -WindowStyle Hidden</p>
-                    <p><strong>Risk Score:</strong> 70/100</p>
-                    <p><span class="mitre-tag">T1059.001</span> PowerShell</p>
-                    <p><a href="https://attack.mitre.org/techniques/T1059.001" target="_blank">🔗 MITRE ATT&CK Reference</a></p>
-                </div>
-                
-                <div class="finding-card risk-low">
-                    <h3>Network Connections Discovery via Netstat</h3>
-                    <p class="timestamp">2024-12-30 09:17:00 |  WS-FINANCE-01 |  jdoe</p>
-                    <p><strong>Process:</strong> netstat.exe</p>
-                    <p><strong>Message:</strong> netstat -an</p>
-                    <p><strong>Risk Score:</strong> 40/100</p>
-                    <p><span class="mitre-tag">T1049</span> System Network Connections Discovery</p>
-                    <p><a href="https://attack.mitre.org/techniques/T1049" target="_blank">🔗 MITRE ATT&CK Reference</a></p>
-                </div>
-                
-                <div class="finding-card risk-medium">
-                    <h3>PowerShell Process Creation Keywords</h3>
-                    <p class="timestamp">2024-12-30 09:19:00 |  WS-FINANCE-01 |  jdoe</p>
-                    <p><strong>Process:</strong> powershell.exe</p>
-                    <p><strong>Message:</strong> powershell -enc SGVsbG8gV29ybGQ=</p>
-                    <p><strong>Risk Score:</strong> 70/100</p>
-                    <p><span class="mitre-tag">T1059.001</span> PowerShell</p>
-                    <p><a href="https://attack.mitre.org/techniques/T1059.001" target="_blank">🔗 MITRE ATT&CK Reference</a></p>
-                </div>
-                
-                <div class="finding-card risk-high">
-                    <h3>WMIC usage for Credential Access</h3>
-                    <p class="timestamp">2024-12-30 09:20:00 |  DC-01 |  admin</p>
-                    <p><strong>Process:</strong> wmic.exe</p>
-                    <p><strong>Message:</strong> wmic process list shadowcopy</p>
-                    <p><strong>Risk Score:</strong> 90/100</p>
-                    <p><span class="mitre-tag">T1003</span> OS Credential Dumping</p>
-                    <p><a href="https://attack.mitre.org/techniques/T1003" target="_blank">🔗 MITRE ATT&CK Reference</a></p>
-                </div>
-                
                 <div style="margin-top: 40px;">
                     <h2>Threat Landscape Analysis</h2>
                     <img src="threat_landscape.png" alt="Threat Analysis Dashboard" style="max-width: 100%; border: 1px solid #ddd; border-radius: 5px;">

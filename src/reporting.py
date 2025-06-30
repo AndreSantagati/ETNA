@@ -336,7 +336,7 @@ class ThreatHuntingReporter:
     def export_for_siem_integration(self, findings_df: pd.DataFrame):
         """Export findings in various SIEM-compatible formats."""
         if findings_df.empty:
-            print("⚠️ No findings to export")
+            print("WARNING: No findings to export")
             return
         
         # JSON export for Splunk/Elasticsearch

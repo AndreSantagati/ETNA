@@ -1,0 +1,5 @@
+TimeCreated,ComputerName,UserName,ProcessName,EventID,SourceIpAddress,DestinationIpAddress,EventData,Action
+2024-12-30 08:30:00,WS-HR-05,alice,excel.exe,4688,,,Excel startup,executed
+2024-12-30 08:31:00,WS-IT-02,bob,chrome.exe,4688,,,Chrome browser,executed
+2024-12-30 08:32:00,SRV-FILE-01,system,backup.exe,4688,,,Daily backup routine,executed
+2024-12-30 08:33:00,WS-MARKETING-03,carol,outlook.exe,4688,,,Outlook startup,executed

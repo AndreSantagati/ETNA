@@ -1,7 +1,7 @@
 # src/main.py
 
 from src.hunting_engine import ThreatHuntingEngine
-from src.cti_integration import CTIManager
+from src.cti_integration import EnhancedCTIManager
 from src.log_parser import NORMALIZED_LOG_SCHEMA
 from src.ttp_mapping import SigmaRuleLoader # IMPORT THE SigmaRuleLoader AGAIN
 from src.reporting import ThreatHuntingReporter
@@ -120,7 +120,7 @@ level: low
         print(f"Generated a sample Sigma Netstat rule at {netstat_rule_path}")
 
     # --- Initialize Components ---
-    cti_manager = CTIManager()
+    cti_manager = EnhancedCTIManager()
     sigma_rule_loader = SigmaRuleLoader(rules_path=sigma_rules_dir) # Instantiate SigmaRuleLoader
     
     # Initialize the Threat Hunting Engine with both managers
