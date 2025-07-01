@@ -1,4 +1,5 @@
 ## 🎯 Automated Threat Hunting Platform
+
 [![CI/CD](https://github.com/AndreSantagati/threat-hunting-platform/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/AndreSantagati/threat-hunting-platform/actions)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -7,6 +8,7 @@
 > **Enterprise-grade automated threat hunting platform with MITRE ATT&CK integration, Sigma rule support, and comprehensive reporting.**
 	
 ## 🚀 Quick Start	
+
 	```bash
 	# Clone the repository
 	git clone https://github.com/AndreSantagati/threat-hunting-platform.git
@@ -23,6 +25,7 @@
 	```
 	
 ## ✨ Features
+
 	| Feature | Status | Description |
 	|---------|--------|-------------|
 	| 🎯 **MITRE ATT&CK Integration** | ✅ | Automatic TTP mapping and technique enrichment |
@@ -35,7 +38,7 @@
 
 ## 🏗️ Architecture
 
-	```mermaid
+```mermaid
 	graph TD
 	    A[📁 Log Sources] --> B[🔍 Hunting Engine]
 	    B --> C[📊 Reporting]
@@ -56,12 +59,12 @@
 	    D1[MITRE ATT&CK] --> D
 	    D2[IOC Feeds] --> D
 	    D3[Custom CTI] --> D
-	```
-	**Data Flow:** Log Sources → Hunting Engine (enriched with Threat Intelligence) → Comprehensive Reporting
+```
+**Data Flow:** Log Sources → Hunting Engine (enriched with Threat Intelligence) → Comprehensive Reporting
 	
 ## 📊 Example Output
 
-	```console
+```console
 	🎯 THREAT HUNT RESULTS
 	========================================
 	✅ Status: 5 Findings Detected
@@ -69,12 +72,13 @@
 	🏠 Affected Hosts: HOST-01, HOST-02, HOST-04, HOST-05
 	⚠️  Overall Risk: HIGH
 	📊 Report Generated: output/threat_hunting_report.html
-	```
+```
 	
 ## 🔧 Configuration
-	Create `config/cti_config.json`:
+
+Create `config/cti_config.json`:
   
-	```json
+```json
 	{
 	  "mitre_update_interval": 24,
 	  "cache_directory": "data/cti/",
@@ -96,15 +100,15 @@
 	    }
 	  ]
 	}
-	```
+```
 	
 ## 🚀 Advanced Usage
 	
-	### Custom Sigma Rules
+### Custom Sigma Rules
 
-	Create detection rules in `data/sigma_rules/`:
+Create detection rules in `data/sigma_rules/`:
 
-	```yaml
+```yaml
 	title: PowerShell Process Creation
 	id: d76a74b1-e2c8-4a92-b437-02b4d96a74b1
 	description: Detects suspicious PowerShell process creation
@@ -116,10 +120,11 @@
 	  - attack.execution
 	  - attack.t1059.001
 	level: medium
-	```
+```
+
 ### Programmatic API
 
-	```python
+```python
 	from src.hunting_engine import ThreatHuntingEngine
 	from src.cti_integration import EnhancedCTIManager
 	from src.ttp_mapping import SigmaRuleLoader
@@ -132,7 +137,8 @@
 	# Run threat hunt
 	findings = engine.hunt("path/to/logs.csv")
 	print(f"Found {len(findings)} potential threats")
-	```
+```
+
 ## 📈 Performance
 
 	| Metric | Performance |
