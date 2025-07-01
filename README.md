@@ -153,7 +153,7 @@ Create detection rules in `data/sigma_rules/`:
 
 automated-threat-hunting-platform/
 │
-├── 📁 .github/workflows/      # CI/CD pipeline configuration
+├── 📁 .github/workflows/     # CI/CD pipeline configuration
 ├── 📁 data/
 │   ├── 📁 logs/              # Sample log files
 │   ├── 📁 cti/               # CTI feeds cache
@@ -164,12 +164,12 @@ automated-threat-hunting-platform/
 │   ├── 📄 ttp_mapping.py     # Sigma rule engine
 │   ├── 📄 hunting_engine.py  # Core hunting logic
 │   ├── 📄 reporting.py       # Report generation
-│   └── 📄 main.py           # Main entry point
+│   └── 📄 main.py            # Main entry point
 ├── 📁 tests/                 # Test suites
-├── 📁 output/               # Generated reports and findings
-├── 📄 requirements.txt      # Python dependencies
-├── 📄 README.md            # This file
-└── 📄 .gitignore           # Git ignore rules
+├── 📁 output/                # Generated reports and findings
+├── 📄 requirements.txt       # Python dependencies
+├── 📄 README.md              # This file
+└── 📄 .gitignore             # Git ignore rules
 
 
 ## 🤝 Contributing
@@ -195,7 +195,7 @@ black src/ tests/
 ```
 
 
-##Contribution Guidelines
+## Contribution Guidelines
 
 - 🔍 Code Quality: Follow PEP 8 style guidelines
 - 🧪 Testing: Add tests for new features
@@ -204,7 +204,7 @@ black src/ tests/
 - 🚀 Performance: Optimize for large-scale log analysis
 - 📋 Pull Requests: Submit detailed pull requests with clear descriptions
 
-##🎯 Use Cases
+## 🎯 Use Cases
 
 - SOC Analysis: Daily threat hunting workflows
 - Incident Response: Rapid threat detection and analysis
@@ -213,16 +213,16 @@ black src/ tests/
 - Research: Threat intelligence analysis and correlation
 
 
-##📄 License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-##⚠️ Disclaimer
+## ⚠️ Disclaimer
 
 This tool is for authorized security testing and research purposes only.
 
 
-##Important Guidelines:
+## Important Guidelines:
 
 - ✅ Use responsibly and ethically
 - ✅ Only analyze systems you own or have explicit permission to test
@@ -230,7 +230,7 @@ This tool is for authorized security testing and research purposes only.
 - ❌ Not responsible for misuse or unauthorized access
 - ❌ Not liable for any damages resulting from use
 
-##🙏 Acknowledgments
+## 🙏 Acknowledgments
 
 - 🎯 MITRE ATT&CK Framework - For the comprehensive threat model
 - 🔍 Sigma Community - For detection rule formats and standards
