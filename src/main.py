@@ -1,4 +1,8 @@
 # src/main.py
+"""
+ETNA - Enhanced Threat Network Analysis
+Sicilian-inspired automated threat hunting platform.
+"""
 
 from src.hunting_engine import ThreatHuntingEngine
 from src.cti_integration import EnhancedCTIManager

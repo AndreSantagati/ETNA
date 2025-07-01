@@ -1,6 +1,6 @@
 """
-Enhanced CTI Integration for Production Use
-Supports multiple IOC feeds, configuration management, and better error handling.
+ETNA CTI Integration
+Cyber Threat Intelligence feeds integration for ETNA platform.
 """
 
 import requests

@@ -17,8 +17,8 @@
 
 ```bash
 	# Clone the repository
-	git clone https://github.com/AndreSantagati/threat-hunting-platform.git
-	cd threat-hunting-platform
+	git clone https://github.com/AndreSantagati/ETNA.git
+	cd ETNA
 	
 	# Install dependencies
 	pip install -r requirements.txt

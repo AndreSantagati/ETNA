@@ -1,5 +1,10 @@
 # src/hunting_engine.py
 
+"""
+ETNA Hunting Engine
+Core threat detection and analysis engine.
+"""
+
 import pandas as pd
 import os
 import re

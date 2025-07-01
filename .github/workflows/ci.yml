@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: ETNA CI/CD Pipeline
 
 on:
   push:
@@ -49,14 +49,14 @@ jobs:
       run: |
         python -m pytest tests/ -v --tb=short || echo "Some tests failed but continuing..."
     
-    - name: Run basic functionality test
+    - name: Test ETNA imports
       run: |
         python -c "
         import sys, os
         sys.path.append('src')
         try:
             from log_parser import BaseLogParser
-            print('✅ Core imports successful')
+            print('✅ ETNA Core imports successful')
         except Exception as e:
             print(f'⚠️ Import test: {e}')
         "

@@ -1,6 +1,6 @@
 """
-Automated Threat Hunting Platform - Reporting Module
-Generates comprehensive threat hunting reports for security analysts and blue teams.
+ETNA Reporting Module
+Generates comprehensive threat hunting reports.
 """
 
 import pandas as pd
