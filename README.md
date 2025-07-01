@@ -9,7 +9,7 @@
 	
 ## 🚀 Quick Start	
 
-	```bash
+```bash
 	# Clone the repository
 	git clone https://github.com/AndreSantagati/threat-hunting-platform.git
 	cd threat-hunting-platform
@@ -22,7 +22,7 @@
 	
 	# Run the platform
 	python -m src.main
-	```
+```
 	
 ## ✨ Features
 
