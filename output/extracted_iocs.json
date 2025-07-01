@@ -1,20 +1,27 @@
 {
   "ip_addresses": [
-    "185.220.101.42",
-    "10.0.1.50"
+    "8.8.8.8",
+    "192.168.1.50",
+    "192.168.1.10",
+    "1.2.3.4"
   ],
   "processes": [
     "powershell.exe",
     "netstat.exe",
-    "wmic.exe"
+    "wmic.exe",
+    "pwsh.exe"
   ],
   "users": [
+    "user1",
     "admin",
-    "jdoe"
+    "attacker",
+    "user2"
   ],
   "hosts": [
-    "DC-01",
-    "WS-FINANCE-01"
+    "HOST-01",
+    "HOST-04",
+    "HOST-02",
+    "HOST-05"
   ],
   "techniques": [
     "T1059.001",

@@ -1,0 +1,25 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-7.4.4, pluggy-1.6.0 -- C:\tools\Anaconda3\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\andre\OneDrive\Documenti\GitHub\ETNA
+plugins: cov-6.2.1, anyio-4.2.0
+collecting ... collected 16 items
+
+tests/test_ci_basic.py::test_project_structure PASSED                    [  6%]
+tests/test_ci_basic.py::test_basic_imports PASSED                        [ 12%]
+tests/test_ci_basic.py::test_requirements_compatibility PASSED           [ 18%]
+tests/test_ci_basic.py::test_sample_data_creation PASSED                 [ 25%]
+tests/test_cti_integration.py::TestEnhancedCTIManager::test_fetch_mitre_attack_data PASSED [ 31%]
+tests/test_cti_integration.py::TestEnhancedCTIManager::test_ioc_validation PASSED [ 37%]
+tests/test_cti_integration.py::TestEnhancedCTIManager::test_technique_dataframe_creation PASSED [ 43%]
+tests/test_enterprise_integration.py::test_siem_integration PASSED       [ 50%]
+tests/test_enterprise_integration.py::test_performance_metrics PASSED    [ 56%]
+tests/test_enterprise_integration.py::test_report_quality PASSED         [ 62%]
+tests/test_security.py::TestSecurityValidator::test_file_path_validation PASSED [ 68%]
+tests/test_security.py::TestSecurityValidator::test_string_sanitization PASSED [ 75%]
+tests/test_security.py::TestSecurityValidator::test_large_file_rejection PASSED [ 81%]
+tests/test_security.py::TestSecurityValidator::test_dataframe_size_validation PASSED [ 87%]
+tests/test_security.py::test_log_parser_security PASSED                  [ 93%]
+tests/test_security.py::test_security_validator_file_extensions PASSED   [100%]
+
+============================= 16 passed in 8.45s ==============================

@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-7.4.4, pluggy-1.6.0 -- C:\tools\Anaconda3\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\andre\OneDrive\Documenti\GitHub\ETNA
+plugins: cov-6.2.1, anyio-4.2.0
+collecting ... collected 6 items
+
+tests/test_security.py::TestSecurityValidator::test_file_path_validation PASSED [ 16%]
+tests/test_security.py::TestSecurityValidator::test_string_sanitization PASSED [ 33%]
+tests/test_security.py::TestSecurityValidator::test_large_file_rejection PASSED [ 50%]
+tests/test_security.py::TestSecurityValidator::test_dataframe_size_validation PASSED [ 66%]
+tests/test_security.py::test_log_parser_security PASSED                  [ 83%]
+tests/test_security.py::test_security_validator_file_extensions PASSED   [100%]
+
+============================== 6 passed in 0.48s ==============================

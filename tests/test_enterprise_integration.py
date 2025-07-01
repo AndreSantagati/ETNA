@@ -37,8 +37,8 @@ def test_siem_integration():
         file_path = os.path.join(output_dir, filename)
         if os.path.exists(file_path):
             size = os.path.getsize(file_path)
-            print(f"✅ {description}")
-            print(f"   📁 {file_path} ({size:,} bytes)")
+            print(f"{description}")
+            print(f"   {file_path} ({size:,} bytes)")
             
             # Validate file content
             if filename.endswith('.json'):
@@ -46,23 +46,24 @@ def test_siem_integration():
                     with open(file_path, 'r') as f:
                         data = json.load(f)
                         if isinstance(data, list):
-                            print(f"   📊 Contains {len(data)} records")
+                            print(f"   Contains {len(data)} records")
                         elif isinstance(data, dict):
-                            print(f"   📊 Contains {len(data)} fields")
+                            print(f"   Contains {len(data)} fields")
                 except json.JSONDecodeError:
-                    print(f"   ⚠️ Invalid JSON format")
+                    print(f"   Invalid JSON format")
                     
         else:
-            print(f"❌ MISSING: {description}")
-            print(f"   📁 Expected: {file_path}")
+            print(f"MISSING: {description}")
+            print(f"   Expected: {file_path}")
             all_present = False
     
-    return all_present
+    # Use assert instead of return
+    assert all_present, "Some SIEM integration files are missing"
 
 def test_performance_metrics():
     """Test platform performance"""
     print("\n⚡ TESTING PERFORMANCE")
-    print("-" * 40)
+    print("-" * 30)
     
     project_root = get_project_root()
     
@@ -86,34 +87,35 @@ def test_performance_metrics():
         execution_time = end_time - start_time
         
         if result.returncode == 0:
-            print(f"✅ Platform executed successfully")
-            print(f"⏱️  Execution time: {execution_time:.2f} seconds")
+            print(f"Platform executed successfully")
+            print(f"Execution time: {execution_time:.2f} seconds")
             
             if execution_time < 30:
-                print("🚀 EXCELLENT: Very fast execution")
+                print("EXCELLENT: Very fast execution")
             elif execution_time < 60:
-                print("✅ GOOD: Acceptable execution time")
+                print("GOOD: Acceptable execution time")
             elif execution_time < 120:
-                print("⚠️ MODERATE: Consider optimization")
+                print("MODERATE: Consider optimization")
             else:
-                print("🐌 SLOW: Performance optimization needed")
-                
-            return True
+                print("SLOW: Performance optimization needed")
+            
+            # Use assert instead of return
+            assert result.returncode == 0, "Platform execution failed"
         else:
-            print(f"❌ Platform execution failed")
+            print(f"Platform execution failed")
             print(f"Error: {result.stderr}")
-            return False
+            assert False, f"Platform execution failed: {result.stderr}"
             
     except subprocess.TimeoutExpired:
-        print("⏰ Platform timed out after 5 minutes")
-        return False
+        print("Platform timed out after 5 minutes")
+        assert False, "Platform timed out"
     except Exception as e:
-        print(f"❌ Performance test failed: {e}")
-        return False
+        print(f"Performance test failed: {e}")
+        assert False, f"Performance test failed: {e}"
 
 def test_report_quality():
     """Validate report generation and content quality"""
-    print("\n📊 TESTING REPORT QUALITY")
+    print("\nTESTING REPORT QUALITY")
     print("-" * 40)
     
     project_root = get_project_root()
@@ -137,11 +139,11 @@ def test_report_quality():
         
         print("🔍 HTML Report Quality:")
         for check_name, passed in checks:
-            status = "✅" if passed else "❌"
+            status = "V" if passed else "X"
             print(f"   {status} {check_name}")
             quality_checks.append(passed)
     else:
-        print("❌ HTML report not found")
+        print("HTML report not found")
         quality_checks.extend([False] * 5)
     
     # Check executive summary
@@ -159,64 +161,83 @@ def test_report_quality():
             print("\n📋 Executive Summary Quality:")
             for field in required_fields:
                 present = field in summary
-                status = "✅" if present else "❌"
+                status = "V" if present else "X"
                 print(f"   {status} {field}")
                 quality_checks.append(present)
                 
         except json.JSONDecodeError:
-            print("❌ Executive summary has invalid JSON")
+            print("Executive summary has invalid JSON")
             quality_checks.extend([False] * 5)
     else:
-        print("❌ Executive summary not found")
+        print("Executive summary not found")
         quality_checks.extend([False] * 5)
     
     # Check visualization
     viz_file = os.path.join(output_dir, "threat_landscape.png")
     if os.path.exists(viz_file):
         size = os.path.getsize(viz_file)
-        print(f"\n📈 Visualization: ✅ Generated ({size:,} bytes)")
+        print(f"\nVisualization: Generated ({size:,} bytes)")
         quality_checks.append(True)
     else:
-        print("\n📈 Visualization: ❌ Not generated")
+        print("\nVisualization: Not generated")
         quality_checks.append(False)
     
-    return all(quality_checks), len(quality_checks)
+    # Use assert instead of return
+    quality_score = sum(quality_checks)
+    total_checks = len(quality_checks)
+    
+    print(f"\nQuality Score: {quality_score}/{total_checks}")
+    
+    # Assert that at least 80% of quality checks pass
+    assert quality_score >= (total_checks * 0.8), f"Quality score too low: {quality_score}/{total_checks}"
 
 def main():
-    print("🏢 ENTERPRISE INTEGRATION TESTING SUITE")
+    print("ENTERPRISE INTEGRATION TESTING SUITE")
     print("=" * 60)
     
     # Run all tests
     test_results = []
     
     # Test 1: SIEM Integration
-    siem_ok = test_siem_integration()
-    test_results.append(("SIEM Integration", siem_ok))
+    try:
+        test_siem_integration()
+        test_results.append(("SIEM Integration", True))
+    except Exception as e:
+        print(f"SIEM Integration failed: {e}")
+        test_results.append(("SIEM Integration", False))
     
     # Test 2: Performance
-    perf_ok = test_performance_metrics()
-    test_results.append(("Performance", perf_ok))
+    try:
+        test_performance_metrics()
+        test_results.append(("Performance", True))
+    except Exception as e:
+        print(f"Performance test failed: {e}")
+        test_results.append(("Performance", False))
     
     # Test 3: Report Quality
-    quality_ok, quality_total = test_report_quality()
-    test_results.append(("Report Quality", quality_ok))
+    try:
+        test_report_quality()
+        test_results.append(("Report Quality", True))
+    except Exception as e:
+        print(f"Report quality test failed: {e}")
+        test_results.append(("Report Quality", False))
     
     # Final Summary
     print("\n" + "=" * 60)
-    print("🎯 ENTERPRISE TESTING SUMMARY")
+    print("ENTERPRISE TESTING SUMMARY")
     print("=" * 60)
     
     for test_name, passed in test_results:
-        status = "✅ PASSED" if passed else "❌ FAILED"
+        status = "PASSED" if passed else "FAILED"
         print(f"{status} - {test_name}")
     
     passed_tests = sum(1 for _, passed in test_results if passed)
-    print(f"\n🏆 Overall Score: {passed_tests}/{len(test_results)} tests passed")
+    print(f"\nOverall Score: {passed_tests}/{len(test_results)} tests passed")
     
     if passed_tests == len(test_results):
-        print("🚀 READY FOR ENTERPRISE DEPLOYMENT!")
+        print("READY FOR ENTERPRISE DEPLOYMENT!")
     else:
-        print("⚠️  Some issues need attention before enterprise deployment")
+        print("Some issues need attention before enterprise deployment")
 
 if __name__ == "__main__":
     main()

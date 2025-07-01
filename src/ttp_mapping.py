@@ -180,5 +180,73 @@ class SigmaRuleLoader:
 
 # --- Example Usage (remains the same) ---
 if __name__ == "__main__":
-    # ... (code to generate sample rules, unchanged) ...
-    pass
+    import os
+    
+    def test_sigma_loader():
+        """Test the SigmaRuleLoader functionality with existing rules."""
+        print("\nTESTING ETNA SIGMA RULE LOADER")
+        print("=" * 50)
+        
+        # Initialize the loader
+        loader = SigmaRuleLoader()
+        
+        # Load existing rules
+        rules = loader.load_sigma_rules()
+        
+        if rules:
+            print(f"\n✅ Successfully loaded {len(rules)} Sigma rules:")
+            print("-" * 30)
+            
+            for rule in rules:
+                print(f"Rule: {rule['title']}")
+                print(f"   ID: {rule['id']}")
+                print(f"   Author: {rule.get('author', 'Unknown')}")
+                print(f"   Level: {rule['level']}")
+                print(f"   Tags: {', '.join(str(tag) for tag in rule['tags'])}")
+                print(f"   Detection Keys: {list(rule['detection'].keys())}")
+                print()
+        else:
+            print("No rules loaded. Check your Sigma rule files.")
+            print("Run 'python src/main.py' first to generate sample rules.")
+        
+        return rules
+    
+    def validate_rule_structure():
+        """Validate that loaded rules have proper structure."""
+        print("\n🔧 VALIDATING RULE STRUCTURE")
+        print("-" * 30)
+        
+        loader = SigmaRuleLoader()
+        rules = loader.get_loaded_rules()
+        
+        required_fields = ['id', 'title', 'detection', 'tags', 'level']
+        
+        for rule in rules:
+            rule_name = rule.get('title', 'Unknown Rule')
+            print(f"🔍 Checking: {rule_name}")
+            
+            for field in required_fields:
+                if field in rule and rule[field]:
+                    print(f"   {field}: Valid")
+                else:
+                    print(f"   {field}: Missing or empty")
+            print()
+    
+    # Main execution
+    print("ETNA SIGMA RULE LOADER TEST SUITE")
+    print("=" * 60)
+    
+    try:
+        # Test rule loading
+        rules = test_sigma_loader()
+        
+        # Validate structure
+        if rules:
+            validate_rule_structure()
+        
+        print("\nETNA Sigma Rule Loader testing completed!")
+        
+    except Exception as e:
+        print(f"Error during testing: {e}")
+        import traceback
+        traceback.print_exc()

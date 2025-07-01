@@ -2,7 +2,7 @@ title: PowerShell Process Creation Keywords
 id: d76a74b1-e2c8-4a92-b437-02b4d96a74b1
 status: experimental
 description: Detects suspicious PowerShell process creation using keywords.
-author: Your Name @YourHandle
+author: Andrea Santagati @AndreSantagati
 date: 2024/06/18
 logsource:
     category: process_creation

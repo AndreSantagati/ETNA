@@ -2,7 +2,7 @@ title: Network Connections Discovery via Netstat
 id: e2b3c4d5-f6a7-8b9c-0d1e-2f3a4b5c6d7e
 status: experimental
 description: Detects usage of netstat for network connection enumeration.
-author: Your Name @YourHandle
+author: Andrea Santagati @AndreSantagati
 date: 2024/06/18
 logsource:
     category: process_creation

@@ -1,0 +1,28 @@
+{
+  "security": {
+    "max_file_size_mb": 100,
+    "max_rows_per_file": 1000000,
+    "allowed_extensions": [".csv", ".json", ".jsonl", ".log"],
+    "rate_limiting": {
+      "max_requests_per_hour": 100,
+      "max_requests_per_day": 1000
+    },
+    "input_validation": {
+      "max_string_length": 10000,
+      "sanitize_html": true,
+      "block_script_tags": true
+    },
+    "logging": {
+      "level": "INFO",
+      "max_log_size_mb": 10,
+      "backup_count": 5,
+      "log_directory": "logs"
+    }
+  },
+  "allowed_domains": [
+    "feodotracker.abuse.ch",
+    "urlhaus.abuse.ch", 
+    "threatfox.abuse.ch",
+    "raw.githubusercontent.com"
+  ]
+}

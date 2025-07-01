@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 from collections import Counter
 import numpy as np
+from .security import SecurityValidator, SecurityError
 
 class ThreatHuntingReporter:
     """
@@ -208,6 +209,28 @@ class ThreatHuntingReporter:
     
     def generate_technical_report(self, findings_df: pd.DataFrame, summary: Dict):
         """Generate detailed technical report for security analysts."""
+        # Sanitize all string data before HTML generation
+        if not findings_df.empty:
+            string_columns = ['hunting_rule_title', 'hostname', 'username', 'process_name', 'message']
+            for col in string_columns:
+                if col in findings_df.columns:
+                    findings_df[col] = findings_df[col].apply(
+                        lambda x: SecurityValidator.sanitize_string(str(x)) if pd.notna(x) else x
+                    )
+        
+        # Sanitize summary data
+        def sanitize_dict(d):
+            if isinstance(d, dict):
+                return {k: sanitize_dict(v) for k, v in d.items()}
+            elif isinstance(d, list):
+                return [sanitize_dict(item) for item in d]
+            elif isinstance(d, str):
+                return SecurityValidator.sanitize_string(d)
+            else:
+                return d
+        
+        summary = sanitize_dict(summary)
+        
         html_content = f"""
         <!DOCTYPE html>
         <html lang="en">

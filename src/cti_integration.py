@@ -13,6 +13,9 @@ from typing import Dict, List, Any, Optional, Tuple
 from src.cti_config import CTIConfigManager, IOCFeedConfig
 import time
 from functools import wraps
+from .security import SecurityValidator, SecurityError, RateLimiter
+import ssl
+import certifi
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -43,10 +46,39 @@ class EnhancedCTIManager:
         self.cti_data_path = self.config.cache_directory
         os.makedirs(self.cti_data_path, exist_ok=True)
         
+        # Security enhancements
+        self.rate_limiter = RateLimiter(max_requests=100, time_window=3600)
+        self.session = self._create_secure_session()
+        
+        # MITRE ATT&CK configuration
         self.mitre_attack_enterprise_url = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
         self.mitre_data: Optional[Dict[str, Any]] = None
         self.techniques_df: Optional[pd.DataFrame] = None
         self.ioc_cache: Dict[str, Dict] = {}
+
+    def _create_secure_session(self) -> requests.Session:
+        """Create a secure requests session with proper SSL verification."""
+        session = requests.Session()
+        
+        # Use system CA certificates
+        session.verify = certifi.where()
+        
+        # Set secure headers
+        session.headers.update({
+            'User-Agent': 'ETNA-ThreatHunting-Platform/1.0',
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+        })
+        
+        # Configure SSL context
+        session.mount('https://', requests.adapters.HTTPAdapter(
+            max_retries=3,
+            pool_connections=10,
+            pool_maxsize=10
+        ))
+        
+        return session
 
     def initialize_cti_feeds(self) -> Dict[str, Any]:
         """
@@ -118,23 +150,50 @@ class EnhancedCTIManager:
     
     @retry_with_backoff(max_retries=3)
     def fetch_ioc_feed_enhanced(self, feed_config: IOCFeedConfig) -> List[Dict[str, Any]]:
-        """
-        Enhanced IOC feed fetching with better error handling and data parsing.
-        """
+        """Enhanced IOC feed fetching with security controls."""
+        
+        # Rate limiting check
+        if not self.rate_limiter.is_allowed(feed_config.url):
+            raise SecurityError(f"Rate limit exceeded for {feed_config.name}")
+        
         logger.info(f"Fetching IOC feed: {feed_config.name} from {feed_config.url}")
         
+        # Validate URL
+        if not self._validate_url(feed_config.url):
+            raise SecurityError(f"Invalid or unsafe URL: {feed_config.url}")
+        
         headers = feed_config.headers or {}
-        headers.setdefault('User-Agent', 'ThreatHunting-Platform/1.0')
+        headers.setdefault('User-Agent', 'ETNA-ThreatHunting-Platform/1.0')
         
         try:
-            response = requests.get(feed_config.url, headers=headers, timeout=30)
+            response = self.session.get(
+                feed_config.url, 
+                headers=headers, 
+                timeout=30,
+                stream=True  # Stream large responses
+            )
             response.raise_for_status()
             
-            # Parse based on feed type
-            if feed_config.feed_type == 'json':
-                iocs = self._parse_json_feed(response.json(), feed_config)
+            # Check response size
+            content_length = response.headers.get('content-length')
+            if content_length and int(content_length) > 50 * 1024 * 1024:  # 50MB
+                raise SecurityError(f"Response too large: {content_length} bytes")
+            
+            # Read response with size limit
+            content = b''
+            for chunk in response.iter_content(chunk_size=8192):
+                content += chunk
+                if len(content) > 50 * 1024 * 1024:  # 50MB limit
+                    raise SecurityError("Response exceeded size limit")
+            
+            # Parse based on content type
+            if 'application/json' in response.headers.get('content-type', ''):
+                iocs = self._parse_json_feed(json.loads(content.decode('utf-8')), feed_config)
             else:
-                iocs = self._parse_text_feed(response.text, feed_config)
+                iocs = self._parse_text_feed(content.decode('utf-8'), feed_config)
+            
+            # Validate and sanitize IOCs
+            iocs = self._validate_iocs(iocs)
             
             # Cache the results
             self._cache_iocs(feed_config.name, iocs)
@@ -148,6 +207,50 @@ class EnhancedCTIManager:
         except Exception as e:
             logger.error(f"Error parsing {feed_config.name}: {e}")
             raise
+
+    def _validate_url(self, url: str) -> bool:
+        """Validate URL for security."""
+        import urllib.parse
+        
+        parsed = urllib.parse.urlparse(url)
+        
+        # Must be HTTPS
+        if parsed.scheme != 'https':
+            logger.warning(f"Non-HTTPS URL rejected: {url}")
+            return False
+        
+        # Check for suspicious domains
+        suspicious_domains = ['localhost', '127.0.0.1', '0.0.0.0', '10.', '192.168.', '172.16.']
+        if any(suspicious in parsed.netloc for suspicious in suspicious_domains):
+            logger.warning(f"Suspicious domain rejected: {parsed.netloc}")
+            return False
+        
+        return True
+
+    def _validate_iocs(self, iocs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Validate and sanitize IOC data."""
+        validated_iocs = []
+        
+        for ioc in iocs:
+            try:
+                # Sanitize all string fields
+                sanitized_ioc = {}
+                for key, value in ioc.items():
+                    if isinstance(value, str):
+                        sanitized_ioc[key] = SecurityValidator.sanitize_string(value, max_length=1000)
+                    else:
+                        sanitized_ioc[key] = value
+                
+                # Validate required fields
+                if 'value' in sanitized_ioc and sanitized_ioc['value']:
+                    validated_iocs.append(sanitized_ioc)
+                    
+            except Exception as e:
+                logger.warning(f"Skipping invalid IOC: {e}")
+                continue
+        
+        logger.info(f"Validated {len(validated_iocs)} out of {len(iocs)} IOCs")
+        return validated_iocs
 
     def _parse_json_feed(self, data: Any, feed_config: IOCFeedConfig) -> List[Dict[str, Any]]:
         """Parse JSON-based IOC feeds."""
@@ -234,9 +337,21 @@ class EnhancedCTIManager:
         if not value or len(value) < 3:
             return False
         
-        # Basic validation patterns
+        # Enhanced validation for IP addresses
+        if ioc_type == 'ip':
+            try:
+                parts = value.split('.')
+                if len(parts) != 4:
+                    return False
+                for part in parts:
+                    if not part.isdigit() or int(part) > 255 or int(part) < 0:
+                        return False
+                return True
+            except (ValueError, AttributeError):
+                return False
+        
+        # Basic validation patterns for other types
         patterns = {
-            'ip': r'^(\d{1,3}\.){3}\d{1,3}$',
             'domain': r'^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$',
             'url': r'^https?://',
             'md5': r'^[a-fA-F0-9]{32}$',
@@ -246,7 +361,7 @@ class EnhancedCTIManager:
         
         if ioc_type in patterns:
             return bool(re.match(patterns[ioc_type], value))
-        
+    
         return True  # Allow unknown types
 
     def _cache_iocs(self, feed_name: str, iocs: List[Dict[str, Any]]):
@@ -339,46 +454,97 @@ class EnhancedCTIManager:
         mitre_path = os.path.join(self.cti_data_path, 'enterprise-attack.json')
         
         if not force_download and os.path.exists(mitre_path):
-            with open(mitre_path, 'r') as f:
-                self.mitre_data = json.load(f)
-        else:
             try:
-                logger.info("Downloading MITRE ATT&CK data...")
-                response = requests.get(self.mitre_attack_enterprise_url, timeout=60)
-                response.raise_for_status()
-                self.mitre_data = response.json()
-                
-                # Cache the data
-                with open(mitre_path, 'w') as f:
-                    json.dump(self.mitre_data, f, indent=2)
-                    
+                with open(mitre_path, 'r') as f:
+                    self.mitre_data = json.load(f)
+                    logger.info(f"Loaded cached MITRE data with {len(self.mitre_data.get('objects', []))} objects")
+                    return self.mitre_data
             except Exception as e:
-                logger.error(f"Failed to fetch MITRE data: {e}")
-                self.mitre_data = {"objects": []}
+                logger.warning(f"Failed to load cached MITRE data: {e}")
+        
+        try:
+            logger.info("Downloading MITRE ATT&CK data...")
+            response = self.session.get(self.mitre_attack_enterprise_url, timeout=60)
+            response.raise_for_status()
+            
+            self.mitre_data = response.json()
+            logger.info(f"Downloaded MITRE data with {len(self.mitre_data.get('objects', []))} objects")
+            
+            # Cache the data
+            with open(mitre_path, 'w') as f:
+                json.dump(self.mitre_data, f, indent=2)
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Network error fetching MITRE data: {e}")
+            # Create minimal fallback data
+            self.mitre_data = {"objects": []}
+        except Exception as e:
+            logger.error(f"Failed to fetch MITRE data: {e}")
+            self.mitre_data = {"objects": []}
+            
         return self.mitre_data
 
     def get_techniques_dataframe(self) -> pd.DataFrame:
         """Convert MITRE data to DataFrame."""
         if not self.mitre_data:
-            self.fetch_mitre_attack_data()
+            logger.info("No MITRE data available, fetching...")
+            try:
+                self.fetch_mitre_attack_data()
+            except Exception as e:
+                logger.error(f"Failed to fetch MITRE data: {e}")
+                self.techniques_df = pd.DataFrame(columns=['technique_id', 'name', 'description', 'url'])
+                return self.techniques_df
         
         techniques = []
+        
+        # Handle case where mitre_data is None or empty
+        if not self.mitre_data or 'objects' not in self.mitre_data:
+            logger.warning("MITRE data is empty or invalid")
+            self.techniques_df = pd.DataFrame(columns=['technique_id', 'name', 'description', 'url'])
+            return self.techniques_df
+        
         for obj in self.mitre_data.get('objects', []):
             if obj.get('type') == 'attack-pattern':
-                techniques.append({
-                    'technique_id': obj.get('external_references', [{}])[0].get('external_id', ''),
-                    'name': obj.get('name', ''),
-                    'description': obj.get('description', ''),
-                    'url': f"https://attack.mitre.org/techniques/{obj.get('external_references', [{}])[0].get('external_id', '')}"
-                })
+                external_refs = obj.get('external_references', [])
+                technique_id = ''
+                
+                # Find the MITRE technique ID
+                for ref in external_refs:
+                    if ref.get('source_name') == 'mitre-attack':
+                        technique_id = ref.get('external_id', '')
+                        break
+                
+                if technique_id:  # Only add if we have a valid technique ID
+                    techniques.append({
+                        'technique_id': technique_id,
+                        'name': obj.get('name', ''),
+                        'description': obj.get('description', ''),
+                        'url': f"https://attack.mitre.org/techniques/{technique_id}"
+                    })
         
         self.techniques_df = pd.DataFrame(techniques)
+        
+        if self.techniques_df.empty:
+            logger.warning("No MITRE techniques found in data")
+            self.techniques_df = pd.DataFrame(columns=['technique_id', 'name', 'description', 'url'])
+        
+        logger.info(f"Loaded {len(self.techniques_df)} MITRE techniques")
         return self.techniques_df
 
     def get_technique_by_id(self, technique_id: str) -> Optional[Dict[str, Any]]:
         """Get technique details by ID."""
-        if self.techniques_df is None:
+        if self.techniques_df is None or self.techniques_df.empty:
+            logger.warning("Techniques DataFrame is empty, attempting to reload...")
             self.get_techniques_dataframe()
+        
+        # Check if DataFrame still empty or missing column
+        if self.techniques_df is None or self.techniques_df.empty:
+            logger.error("No MITRE techniques available")
+            return None
+            
+        if 'technique_id' not in self.techniques_df.columns:
+            logger.error("technique_id column not found in DataFrame")
+            return None
         
         technique = self.techniques_df[self.techniques_df['technique_id'] == technique_id]
         if not technique.empty:

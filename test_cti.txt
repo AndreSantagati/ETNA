@@ -1,0 +1,12 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-7.4.4, pluggy-1.6.0 -- C:\tools\Anaconda3\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\andre\OneDrive\Documenti\GitHub\ETNA
+plugins: cov-6.2.1, anyio-4.2.0
+collecting ... collected 3 items
+
+tests/test_cti_integration.py::TestEnhancedCTIManager::test_fetch_mitre_attack_data PASSED [ 33%]
+tests/test_cti_integration.py::TestEnhancedCTIManager::test_ioc_validation PASSED [ 66%]
+tests/test_cti_integration.py::TestEnhancedCTIManager::test_technique_dataframe_creation PASSED [100%]
+
+============================== 3 passed in 0.76s ==============================

@@ -6,9 +6,19 @@ matplotlib>=3.4.0
 seaborn>=0.11.0
 pyyaml>=5.4.0
 
-# Sigma rule support (more stable versions)
+# Sigma rule support
 pysigma>=0.9.0
 pysigma-backend-splunk>=1.0.0
 
-# Optional: Only install if available
-# sigma-cli>=0.7.0
+# Security enhancements (NEW)
+certifi>=2021.10.8
+cryptography>=3.4.8
+urllib3>=1.26.12
+psutil>=5.8.0
+
+# Testing (NEW)
+pytest>=6.2.0
+pytest-cov>=2.12.0
+
+# Optional but recommended
+python-dotenv>=0.19.0
