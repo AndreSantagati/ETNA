@@ -1,11 +1,17 @@
-## 🎯 Automated Threat Hunting Platform
+# 🌋 ETNA
+## Enhanced Threat Network Analysis
 
 [![CI/CD](https://github.com/AndreSantagati/threat-hunting-platform/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/AndreSantagati/threat-hunting-platform/actions)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Security](https://img.shields.io/badge/security-MITRE%20ATT%26CK-red.svg)](https://attack.mitre.org/)
 	
-> **Enterprise-grade automated threat hunting platform with MITRE ATT&CK integration, Sigma rule support, and comprehensive reporting.**
+
+## 🇮🇹 Sicilian Heritage
+
+**ETNA** draws its name from Mount Etna, the majestic Sicilian volcano that has watched over the island for millennia. Like Etna's eternal vigilance over Sicily, our platform provides continuous, powerful threat monitoring for your digital infrastructure.
+
+*"Come l'Etna vigila sulla Sicilia, ETNA veglia sulla tua sicurezza digitale"*
 	
 ## 🚀 Quick Start	
 
@@ -151,7 +157,7 @@ Create detection rules in `data/sigma_rules/`:
 	
 ## 📁 Project Structure
 ```
-automated-threat-hunting-platform/
+ETNA/
 │
 ├── 📁 .github/workflows/      → CI/CD pipeline configuration
 ├── 📁 data/
