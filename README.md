@@ -177,6 +177,21 @@ ETNA/
 ├── 📄 README.md            → Documentation
 └── 📄 .gitignore           → Git ignore rules
 ```
+## 🔒 Security
+
+ETNA implements multiple security layers:
+
+- **Input Validation**: All file inputs are validated for size, type, and content
+- **Output Sanitization**: All generated content is sanitized to prevent injection
+- **Rate Limiting**: API endpoints have built-in rate limiting
+- **Secure Parsing**: Large files are processed in chunks to prevent memory exhaustion
+- **Audit Logging**: All security events are logged to separate audit trail
+
+### Security Reporting
+
+If you discover a security vulnerability, please report it to:
+- Email: [andreasantagati7@gmail.com]
+- GitHub Security Advisories
 
 ## 🤝 Contributing
 
