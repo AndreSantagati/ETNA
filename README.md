@@ -1,15 +1,12 @@
-
-	# 🎯 Automated Threat Hunting Platform
+## 🎯 Automated Threat Hunting Platform
+[![CI/CD](https://github.com/AndreSantagati/threat-hunting-platform/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/AndreSantagati/threat-hunting-platform/actions)
+[![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Security](https://img.shields.io/badge/security-MITRE%20ATT%26CK-red.svg)](https://attack.mitre.org/)
 	
-	[![CI/CD](https://github.com/AndreSantagati/threat-hunting-platform/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/AndreSantagati/threat-hunting-platform/actions)
-	[![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-	[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-	[![Security](https://img.shields.io/badge/security-MITRE%20ATT%26CK-red.svg)](https://attack.mitre.org/)
+> **Enterprise-grade automated threat hunting platform with MITRE ATT&CK integration, Sigma rule support, and comprehensive reporting.**
 	
-	> **Enterprise-grade automated threat hunting platform with MITRE ATT&CK integration, Sigma rule support, and comprehensive reporting.**
-	
-	## 🚀 Quick Start
-	
+## 🚀 Quick Start	
 	```bash
 	# Clone the repository
 	git clone https://github.com/AndreSantagati/threat-hunting-platform.git
@@ -25,8 +22,7 @@
 	python -m src.main
 	```
 	
-	## ✨ Features
-	
+## ✨ Features
 	| Feature | Status | Description |
 	|---------|--------|-------------|
 	| 🎯 **MITRE ATT&CK Integration** | ✅ | Automatic TTP mapping and technique enrichment |
@@ -36,9 +32,9 @@
 	| 🔗 **SIEM Integration** | ✅ | Export to Splunk, QRadar, ArcSight |
 	| 🐳 **Docker Support** | ✅ | Containerized deployment ready |
 	| 📈 **Real-time Dashboard** | 🔄 | Streamlit-based interactive interface |
-	
-	## 🏗️ Architecture
-	
+
+## 🏗️ Architecture
+
 	```mermaid
 	graph TD
 	    A[📁 Log Sources] --> B[🔍 Hunting Engine]
@@ -61,11 +57,10 @@
 	    D2[IOC Feeds] --> D
 	    D3[Custom CTI] --> D
 	```
-	
 	**Data Flow:** Log Sources → Hunting Engine (enriched with Threat Intelligence) → Comprehensive Reporting
 	
-	## 📊 Example Output
-	
+## 📊 Example Output
+
 	```console
 	🎯 THREAT HUNT RESULTS
 	========================================
@@ -76,10 +71,9 @@
 	📊 Report Generated: output/threat_hunting_report.html
 	```
 	
-	## 🔧 Configuration
-	
+## 🔧 Configuration
 	Create `config/cti_config.json`:
-	
+  
 	```json
 	{
 	  "mitre_update_interval": 24,
@@ -104,12 +98,12 @@
 	}
 	```
 	
-	## 🚀 Advanced Usage
+## 🚀 Advanced Usage
 	
 	### Custom Sigma Rules
-	
+
 	Create detection rules in `data/sigma_rules/`:
-	
+
 	```yaml
 	title: PowerShell Process Creation
 	id: d76a74b1-e2c8-4a92-b437-02b4d96a74b1
@@ -123,9 +117,8 @@
 	  - attack.t1059.001
 	level: medium
 	```
-	
-	### Programmatic API
-	
+### Programmatic API
+
 	```python
 	from src.hunting_engine import ThreatHuntingEngine
 	from src.cti_integration import EnhancedCTIManager
@@ -140,9 +133,8 @@
 	findings = engine.hunt("path/to/logs.csv")
 	print(f"Found {len(findings)} potential threats")
 	```
-	
-	## 📈 Performance
-	
+## 📈 Performance
+
 	| Metric | Performance |
 	|--------|-------------|
 	| **Log Processing** | 10,000+ events/second |
@@ -151,7 +143,7 @@
 	| **Report Generation** | <30 seconds for 1M events |
 	| **MITRE Mapping** | Real-time enrichment |
 	
-	## 📁 Project Structure
+## 📁 Project Structure
 
 automated-threat-hunting-platform/
 │
@@ -172,3 +164,78 @@ automated-threat-hunting-platform/
 ├── 📄 requirements.txt      # Python dependencies
 ├── 📄 README.md            # This file
 └── 📄 .gitignore           # Git ignore rules
+
+
+## 🤝 Contributing
+
+We welcome contributions from the cybersecurity community! Here's how to get started:
+
+### Development Setup
+
+```bash
+# Fork the repository and clone
+git clone https://github.com/AndreSantagati/threat-hunting-platform.git
+cd threat-hunting-platform
+
+# Install development dependencies
+pip install -r requirements.txt
+pip install pytest black flake8
+
+# Run tests
+pytest tests/ -v
+
+# Code formatting
+black src/ tests/
+```
+
+
+##Contribution Guidelines
+
+- 🔍 Code Quality: Follow PEP 8 style guidelines
+- 🧪 Testing: Add tests for new features
+- 📝 Documentation: Update documentation for any changes
+- 🔒 Security: Security-focused features are prioritized
+- 🚀 Performance: Optimize for large-scale log analysis
+- 📋 Pull Requests: Submit detailed pull requests with clear descriptions
+
+##🎯 Use Cases
+
+- SOC Analysis: Daily threat hunting workflows
+- Incident Response: Rapid threat detection and analysis
+- Red Team Detection: Blue team exercise validation
+- Compliance: Automated security monitoring
+- Research: Threat intelligence analysis and correlation
+
+
+##📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+##⚠️ Disclaimer
+
+This tool is for authorized security testing and research purposes only.
+
+
+##Important Guidelines:
+
+- ✅ Use responsibly and ethically
+- ✅ Only analyze systems you own or have explicit permission to test
+- ✅ Comply with all applicable laws and regulations
+- ❌ Not responsible for misuse or unauthorized access
+- ❌ Not liable for any damages resulting from use
+
+##🙏 Acknowledgments
+
+- 🎯 MITRE ATT&CK Framework - For the comprehensive threat model
+- 🔍 Sigma Community - For detection rule formats and standards
+- 🌐 Abuse.ch - For threat intelligence feeds
+- 🛡️ Security Community - For continuous feedback and improvements
+
+
+<div align="center">
+Made with ❤️ for the cybersecurity community
+
+
+⭐ Star this repository if it helped secure your environment!
+</div>
+```
