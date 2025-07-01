@@ -153,23 +153,28 @@ Create detection rules in `data/sigma_rules/`:
 
 automated-threat-hunting-platform/
 │
-├── 📁 .github/workflows/     # CI/CD pipeline configuration
-├── 📁 data/
-│   ├── 📁 logs/              # Sample log files
-│   ├── 📁 cti/               # CTI feeds cache
-│   └── 📁 sigma_rules/       # Detection rules
-├── 📁 src/
-│   ├── 📄 log_parser.py      # Log ingestion and normalization
-│   ├── 📄 cti_integration.py # Threat intelligence feeds
-│   ├── 📄 ttp_mapping.py     # Sigma rule engine
-│   ├── 📄 hunting_engine.py  # Core hunting logic
-│   ├── 📄 reporting.py       # Report generation
-│   └── 📄 main.py            # Main entry point
-├── 📁 tests/                 # Test suites
-├── 📁 output/                # Generated reports and findings
-├── 📄 requirements.txt       # Python dependencies
-├── 📄 README.md              # This file
-└── 📄 .gitignore             # Git ignore rules
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # CI/CD pipeline configuration
+│
+├── data/
+│   ├── logs/                         # Sample log files
+│   ├── cti/                          # CTI feeds cache
+│   └── sigma_rules/                  # Detection rules
+│
+├── src/
+│   ├── log_parser.py                 # Log ingestion and normalization
+│   ├── cti_integration.py            # Threat intelligence feeds
+│   ├── ttp_mapping.py                # Sigma rule engine
+│   ├── hunting_engine.py             # Core hunting logic
+│   ├── reporting.py                  # Report generation
+│   └── main.py                       # Main entry point
+│
+├── tests/                            # Test suites
+├── output/                           # Generated reports and findings
+├── requirements.txt                  # Python dependencies
+├── README.md                         # This file
+└── .gitignore                        # Git ignore rules
 
 
 ## 🤝 Contributing
