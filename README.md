@@ -150,6 +150,7 @@ Create detection rules in `data/sigma_rules/`:
 	| **MITRE Mapping** | Real-time enrichment |
 	
 ## 📁 Project Structure
+```
 automated-threat-hunting-platform/
 │
 ├── 📁 .github/workflows/      → CI/CD pipeline configuration
@@ -169,7 +170,7 @@ automated-threat-hunting-platform/
 ├── 📄 requirements.txt      → Python dependencies
 ├── 📄 README.md            → Documentation
 └── 📄 .gitignore           → Git ignore rules
-
+```
 
 ## 🤝 Contributing
 
