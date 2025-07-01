@@ -237,11 +237,3 @@ This tool is for authorized security testing and research purposes only.
 - 🌐 Abuse.ch - For threat intelligence feeds
 - 🛡️ Security Community - For continuous feedback and improvements
 
-
-<div align="center">
-Made with ❤️ for the cybersecurity community
-
-
-⭐ Star this repository if it helped secure your environment!
-</div>
-```
